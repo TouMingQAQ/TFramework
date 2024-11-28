@@ -1,0 +1,16 @@
+{
+    "name": "tframework.toolbox",
+    "rootNamespace": "",
+    "references": [
+        "GUID:c74f0741ba07a354bbb713f7f5088b97"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

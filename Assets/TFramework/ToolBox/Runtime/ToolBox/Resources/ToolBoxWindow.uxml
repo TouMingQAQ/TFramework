@@ -1,0 +1,6 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/TFramework/ToolBox/Editor/ToolBox/ToolBoxWindow.uss?fileID=7433441132597879392&amp;guid=16677aba4eb6cc043bba2bdc8dc8544f&amp;type=3#ToolBoxWindow" />
+    <engine:VisualElement name="Root" style="flex-grow: 1; flex-direction: column; height: 100%; width: 100%; align-content: auto; align-self: auto; align-items: auto; overflow: visible; flex-wrap: nowrap;">
+        <engine:TabView enabled="true" reorderable="true" style="position: relative; flex-grow: 1;" />
+    </engine:VisualElement>
+</engine:UXML>
