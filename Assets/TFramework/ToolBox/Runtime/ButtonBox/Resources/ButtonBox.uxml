@@ -1,7 +1,0 @@
-<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/TFramework/ToolBox/Runtime/ButtonBox/Resources/ButtonBoxStyle.uss?fileID=7433441132597879392&amp;guid=a4705ca1d98d47d469142009922fc3b9&amp;type=3#ButtonBoxStyle" />
-    <engine:VisualElement name="Root" style="flex-grow: 1; flex-direction: column;">
-        <engine:ListView name="ButtonView" style="margin-top: 10px; margin-bottom: 10px;" />
-        <TFramework.ToolBox.UIToolkitKit.日志 log-color="#FFFFFFFF" warning-color="#FFF900FF" error-color="#FF0000FF" register-log="true" debug-error-log="true" debug-warning-log="true" debug-log="true" style="flex-grow: 0;" />
-    </engine:VisualElement>
-</engine:UXML>

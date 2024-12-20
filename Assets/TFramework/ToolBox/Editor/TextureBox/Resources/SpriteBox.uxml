@@ -1,0 +1,23 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/TFramework/ToolBox/Editor/SpriteBox/Resources/SpriteBox.uss?fileID=7433441132597879392&amp;guid=28939289f91777a4283a872a57391412&amp;type=3#SpriteBox" />
+    <engine:VisualElement name="Root" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.65);">
+        <editor:Toolbar>
+            <editor:ObjectField label="Texture" type="UnityEngine.Texture2D, UnityEngine.CoreModule" name="Texture" />
+            <editor:ToolbarButton text="Process" name="Process" />
+            <editor:ToolbarButton text="Reset" name="Reset" />
+        </editor:Toolbar>
+        <engine:VisualElement style="flex-grow: 1; flex-direction: row;">
+            <engine:VisualElement name="TextureView" style="flex-grow: 1; flex-direction: row; background-color: rgb(0, 0, 0); width: 70%;">
+                <engine:VisualElement name="TextureViewLeft" style="flex-grow: 1; background-image: none; -unity-background-scale-mode: scale-to-fit; margin-top: 10px; margin-right: 10px; margin-bottom: 10px; margin-left: 10px;">
+                    <TFramework.ToolBox.UIToolKit.ImageView name="TextureViewSource" style="flex-grow: 0; flex-shrink: 0; width: auto;" />
+                </engine:VisualElement>
+                <engine:VisualElement name="TextureViewRight" style="flex-grow: 1; visibility: visible; overflow: visible; display: flex; margin-top: 10px; margin-right: 10px; margin-bottom: 10px; margin-left: 10px; -unity-background-scale-mode: scale-to-fit;">
+                    <TFramework.ToolBox.UIToolKit.ImageView name="TextureViewEditor" style="flex-grow: 0; flex-shrink: 0; width: auto;" />
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement name="TextureEditor" style="flex-grow: 0; background-color: rgba(65, 65, 65, 0.59); width: 30%;">
+                <engine:ScrollView />
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

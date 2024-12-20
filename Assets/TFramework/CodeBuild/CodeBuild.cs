@@ -1,52 +1,8 @@
 using System.Text;
-using TFramework.ToolBox;
 using UnityEngine;
 
 namespace TFramework.CodeBuild
 {
-    #if UNITY_EDITOR
-    public static class CodeBuildSample
-    {
-        [ToolButton]
-        public static void Sample()
-        {
-            CodeBuild build = new CodeBuild();
-            build.Code("// CodeBuildSample")
-                .Using("System")
-                .Using("System.Collections.Generic")
-                .NameSpace("TFramework.CodeBuild.Sample")
-                .CodeStart()
-                .ClassHead(new ClassBuild
-                {
-                    ClassName = "SampleClass",
-                    IsPublic = true,
-                    IsStatic = false,
-                    IsPartial = true
-                })
-                .CodeStart()
-                .Code("public float sampleValue = 1;")
-                .Code("public bool sampleBool = false;")
-                .Code("public void SampleMethod()")
-                .CodeStart()
-                .Code("Debug.Log(\"SampleMethod\");")
-                .CodeEnd()
-                .MethodHead(new MethodBuild()
-                {
-                    IsPublic = true,
-                    IsStatic = false,
-                    ReturnType = "void",
-                    MethodName = "SampleMethod2",
-                    Params = "float value1,bool value2"
-                })
-                .CodeStart()
-                .Code("Debug.Log($\"SampleMethod2:{value1} {value2}\");")
-                .CodeEnd()
-                .CodeEnd()
-                .CodeEnd();
-            Debug.Log(build.GetCode());
-        }
-    }
-    #endif
     public struct MethodBuild 
     {
         public bool IsPublic;

@@ -44,8 +44,8 @@ namespace TFramework.ToolBox.Editor
         public BuildBox() : base()
         {
             boxSo = Resources.Load<BuildBoxSO>("BuildBoxSO");
-            var left = this.Q<VisualElement>("LeftPane");
-            var right = this.Q<VisualElement>("RightPane");
+            var left = this.Q<VisualElement>("LeftPanel");
+            var right = this.Q<VisualElement>("RightPanel");
             _buildButton = this.Q<ToolbarButton>("BuildButton");
             _buildProgress = this.Q<ProgressBar>("BuildProgress");
             _refreshButton = this.Q<ToolbarButton>("Refresh");
@@ -130,26 +130,71 @@ namespace TFramework.ToolBox.Editor
                 info.BuildBoxProFileInfo.AutoBuild = evt.newValue;
             }));
             foldout.Add(toggle);
-            
+            VisualElement outPut = new VisualElement
+            {
+                style =
+                {
+                    flexDirection = FlexDirection.Row
+                }
+            };
             var textfield = new TextField("输出路径")
             {
-                value = info.BuildBoxProFileInfo.LocationPathName
+                value = info.BuildBoxProFileInfo.LocationPathName,
+                style = { minWidth = 100}
+
             };
             textfield.RegisterCallback(new EventCallback<ChangeEvent<string>>(evt =>
             {
                 info.BuildBoxProFileInfo.LocationPathName = evt.newValue;
             }));
+            Button selectOutput = new Button
+            {
+                text = "选择输出路径"
+            };
+            selectOutput.clickable.clicked += () =>
+            {
+                var path = EditorUtility.OpenFolderPanel("选择输出路径", Application.dataPath, "");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    textfield.value = path;
+                }
+            };
+            outPut.Add(textfield);
+            outPut.Add(selectOutput);
+            
+            VisualElement abOutPut = new VisualElement
+            {
+                style =
+                {
+                    flexDirection = FlexDirection.Row
+                }
+            };
             var textfield2 = new TextField("AB包路径")
             {
-                value = info.BuildBoxProFileInfo.AssetBundleManifestPath
+                value = info.BuildBoxProFileInfo.AssetBundleManifestPath,
+                style = { minWidth = 100}
             };
             textfield2.RegisterCallback(new EventCallback<ChangeEvent<string>>(evt =>
             {
                 info.BuildBoxProFileInfo.AssetBundleManifestPath = evt.newValue;
             }));
+            Button selectABOutput = new Button
+            {
+                text = "选择AB包路径"
+            };
+            selectABOutput.clickable.clicked += () =>
+            {
+                var path = EditorUtility.OpenFolderPanel("选择AB包路径", Application.dataPath, "");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    textfield2.value = path;
+                }
+            };
+            abOutPut.Add(textfield2);
+            abOutPut.Add(selectABOutput);
             
-            foldout.Add(textfield);
-            foldout.Add(textfield2);
+            foldout.Add(outPut);
+            foldout.Add(abOutPut);
             _rightInfo.Add(foldout);
             _rightScrollView.Clear();
             var _inspector = new InspectorElement(info.BuildProfile);

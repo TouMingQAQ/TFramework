@@ -10,7 +10,7 @@
                 </engine:VisualElement>
                 <engine:ScrollView name="CameraList" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.63); flex-shrink: 1;" />
             </engine:VisualElement>
-            <TFramework.ToolBox.UIToolkitKit.CameraView scale-size="1" style="background-color: rgba(0, 0, 0, 0.78);" />
+            <TFramework.ToolBox.UIToolKit.CameraView scale-size="1" style="background-color: rgba(0, 0, 0, 0.78);" />
         </engine:VisualElement>
         <engine:VisualElement name="Right" style="flex-grow: 0.6; width: auto;">
             <engine:ScrollView name="CameraInfo" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.75);" />
