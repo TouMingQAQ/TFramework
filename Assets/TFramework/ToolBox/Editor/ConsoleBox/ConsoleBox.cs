@@ -12,32 +12,9 @@ using UnityEngine.UIElements;
 
 namespace TFramework.ToolBox
 {
-#if UNITY_EDITOR
-    public class ConsoleWindow : EditorWindow
+
+    public class ConsoleBox : VisualElement
     {
-        [MenuItem("TFramework/ToolBox/Console")]
-        public static void OpenConsoleWindow()
-        {
-            EditorWindow wnd = EditorWindow.GetWindow<ConsoleWindow>();
-            wnd.titleContent = new GUIContent("控制台");
-        }
-
-        private void CreateGUI()
-        {
-            rootVisualElement.Add(new ConsoleBox());
-        }
-    }
-    
-#endif
-    public class ConsoleBox : BaseToolBox
-    {
-        public override bool Closeable => false;
-        public override string TabName => "控制台";
-
-        public override bool PreLoad => true;
-
-        public override string VisualTreeAssetPath => "ConsoleBox";
-        
         private List<string> _inputCache = new();
         private int _inputCacheIndex = 0;
         private ListView _tipView;
@@ -55,12 +32,17 @@ namespace TFramework.ToolBox
             get=>_tipSelectIndex;
             set => _tipSelectIndex = value;
         }
-        public ConsoleBox() : base()
+        public ConsoleBox(VisualElement root)
         {
-            _logView = this.Q<LogView>();
-            _input = this.Q<TextField>("Input");
-            _submitButton = this.Q<Button>("Submit");
-            _tipView = this.Q<ListView>();
+            root.style.flexGrow = 1;
+            root.style.flexBasis = 1;
+            this.style.flexGrow = 1;
+            this.style.flexBasis = 1;
+            Add(root);
+            _logView = root.Q<LogView>();
+            _input = root.Q<TextField>("Input");
+            _submitButton = root.Q<Button>("Submit");
+            _tipView = root.Q<ListView>();
             _tipView.makeItem = MakeTipItem;
             _tipView.itemsSource = _tipList;
             _tipView.bindItem = (element, index) =>

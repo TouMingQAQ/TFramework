@@ -36,7 +36,7 @@ namespace TFramework.Extension
                 AnimationUtility.SetEditorCurve(clip,binding,editorCurve);
             }
         }
-        [MenuItem("CONTEXT/AnimationClip/Inverted")]
+        [UnityEditor.MenuItem("CONTEXT/AnimationClip/Inverted")]
         public static void Inverted()
         {
             var clip = Selection.activeObject as AnimationClip;

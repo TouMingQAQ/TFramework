@@ -8,20 +8,18 @@ namespace TFramework.Runtime
     {
         private sealed class LevelSystem : BaseSystem
         {
-            private Transform topLevel;
-            private Transform centerLevel;
-            private Transform bottomLevel;
-            private Dictionary<string,UIPanelRoot> topLevelRoots = new();
-            private Dictionary<string,UIPanelRoot> centerLevelRoots = new();
-            private Dictionary<string,UIPanelRoot> bottomLevelRoots = new();
+            private Transform sceneMaskLevel;
+            private Transform tipLevel;
+            private Transform defaultLevel;
+
             public override void Init()
             {
                 Register<ClearEvent>(OnClear);
                 if (Manager is UIManager uiManager)
                 {
-                    topLevel = uiManager.TopLevel;
-                    centerLevel = uiManager.CenterLevel;
-                    bottomLevel = uiManager.BottomLevel;
+                    defaultLevel = uiManager.DefaultLevel;
+                    tipLevel = uiManager.TipLevel;
+                    sceneMaskLevel = uiManager.SceneMaskLevel;
                 }
             }
 
@@ -31,47 +29,17 @@ namespace TFramework.Runtime
             }
             private void OnClear(ClearEvent clear)
             {
-                topLevel.ClearChild();
-                centerLevel.ClearChild();
-                bottomLevel.ClearChild();
-                topLevelRoots.Clear();
-                centerLevelRoots.Clear();
-                bottomLevelRoots.Clear();
+                defaultLevel.ClearChild();
+                tipLevel.ClearChild();
+                sceneMaskLevel.ClearChild();
             }
 
-            public UIPanelRoot GetRoot(UILevel level, string rootName)
-            {
-                var rootMap = level switch
-                {
-                    UILevel.Top => topLevelRoots,
-                    UILevel.Center => centerLevelRoots,
-                    UILevel.Bottom => bottomLevelRoots,
-                    _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
-                };
-                if (rootMap.TryGetValue(rootName, out var root))
-                {
-                    //存在，返回
-                    return root;
-                }
-                else
-                {
-                    //不存在，创建
-                    var rootObj = new GameObject
-                    {
-                        name = rootName
-                    };
-                    root = rootObj.AddComponent<UIPanelRoot>();
-                    root.transform.SetParent(GetLevel(level));
-                    root.transform.position = Vector3.zero;
-                    rootMap[rootName] = root;
-                    return root;
-                }
-            }
+           
             public Transform GetLevel(UILevel level) => level switch
             {
-                UILevel.Top => topLevel,
-                UILevel.Center => centerLevel,
-                UILevel.Bottom => bottomLevel,
+                UILevel.Tip => tipLevel,
+                UILevel.SceneMask => sceneMaskLevel,
+                UILevel.Default => defaultLevel,
                 _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
             };
         

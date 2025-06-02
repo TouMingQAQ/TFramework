@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="EncodableAsset" id="{93d8b8c7-a412-4e21-a90c-e21f2cd8b1a6}">
+		<property name="assetPath">
+			<value>UI/Scifi/</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{61415a55-9918-46d3-93d9-57ca5084a5a5}</destination>
+		</relationship>
+	</object>
+</objects>

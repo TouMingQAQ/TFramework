@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{a1c5514d-812d-4526-91ee-981b8cb1dd1e}">
+		<property name="assetPath">
+			<value>UI/Scifi/ESM_GT_cinematic_fx_UI_scifi_digital_swipe_03.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>96</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>0.38834374999999999</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{61415a55-9918-46d3-93d9-57ca5084a5a5}</destination>
+		</relationship>
+	</object>
+</objects>

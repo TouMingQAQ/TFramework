@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{404c93a6-6b46-4bb2-b33a-01084c550f2f}">
+		<property name="assetPath">
+			<value>UI/Scifi/audio.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>5.5379591836734692</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{61415a55-9918-46d3-93d9-57ca5084a5a5}</destination>
+		</relationship>
+	</object>
+</objects>

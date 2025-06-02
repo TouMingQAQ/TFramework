@@ -18,11 +18,11 @@ namespace TFramework.Excel
             if(sheet.Dimension == null)
                 return;
             Size = new Vector2Int(sheet.Dimension.Rows, sheet.Dimension.Columns);
-            for (int i = 1; i <= sheet.Dimension.Rows; i++)
+            for (int x = 1; x <= sheet.Dimension.Rows; x++)
             {
-                for (int j = 1; j <= sheet.Dimension.Columns; j++)
+                for (int y = 1; y <= sheet.Dimension.Columns; y++)
                 {
-                    sheetValueList.Add(sheet.Cells[i, j].GetValue<string>());
+                    sheetValueList.Add(sheet.Cells[y, x].GetValue<string>());
                 }
             }
         }

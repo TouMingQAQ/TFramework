@@ -1,5 +1,7 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Rendering.Universal;
 
 namespace TFramework.Runtime
@@ -12,19 +14,28 @@ namespace TFramework.Runtime
         public Canvas Root => _root;
         [SerializeField] private Transform _preLoad;
         public Transform PreLoad => _preLoad;
-        [SerializeField] private Transform _topLevel;
-        public Transform TopLevel => _topLevel;
-        [SerializeField] private Transform _centerLevel;
-        public Transform CenterLevel => _centerLevel;
-        [SerializeField] private Transform _bottomLevel;
-        public Transform BottomLevel => _bottomLevel;
+        [SerializeField] private Transform _defaultLevel;
+        public Transform DefaultLevel => _defaultLevel;
+   
+
+        [SerializeField]  private Transform _tipLevel;
+        public Transform TipLevel => _tipLevel;
+        [SerializeField]  private Transform _sceneMaskLevel;
+        public Transform SceneMaskLevel => _sceneMaskLevel;
+
         private void Awake()
         {
+            framework.AddManager(this);
             AddSystem<UISystem>();
             AddSystem<LoadSystem>();
             AddSystem<LevelSystem>();
         }
 
+        public async UniTask PreLoadPanelAsync(AssetReference[] reference,Action<UIPanel> callBack)
+        {
+            var loadSystem = GetSystem<LoadSystem>();
+            await loadSystem.PreLoadPanelAsync(reference,callBack);
+        }
         public void ApplyUICameraToMainCamera(Camera mainCamera)
         {
             var data = mainCamera.GetComponent<UniversalAdditionalCameraData>();
@@ -34,42 +45,24 @@ namespace TFramework.Runtime
         {
             Call<ClearEvent>();
         }
-        /// <summary>
-        /// 交换UIPanel
-        /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        public static void ExChangeUIPanel(UIPanel from,UIPanel to)
-        {
-            if (from == null || to == null)
-                return;
-            if(from.panelRoot != to.panelRoot)
-                return;
-            if(from == to)
-                return;
-            var root = from.panelRoot;
-            
-            //交换Panel
-            var fromLast = from.LastPanel;
-            var fromNext = from.NextPanel;
-            var toNext = to.NextPanel;
-            var toLast = to.LastPanel;
-
-            from.NextPanel = toNext == from ? to : toNext;
-            from.LastPanel = toLast == from ? to : toLast;
-            to.LastPanel = fromLast == to ? from : fromLast;
-            to.NextPanel = fromNext == to ? from : fromNext;
-            //交换坐标
-            from.transform.ExChangeSibling(to.transform);
-            
-            if(root.lastPanel == from || root.lastPanel == to)
-                root.lastPanel = from == root.lastPanel ? to : from;
-        }
+        
         public enum UILevel
         {
-            Top,Center,Bottom
+            /// <summary>
+            /// 过场层级
+            /// </summary>
+            SceneMask,
+            /// <summary>
+            /// 提示层级
+            /// </summary>
+            Tip,
+            /// <summary>
+            /// 默认层级
+            /// </summary>
+            Default
         }
         public struct ClearEvent { }
+        public struct ExitEvent{}
         
     }
 }

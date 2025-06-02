@@ -203,8 +203,9 @@ namespace TFramework.Console
             // 定义正则表达式，匹配类名、方法名和参数名（# 开头的参数）及其单个值
             Debug.Log($"ExecuteCommand:<color=green>{command}</color>");
             string pattern =  @"^/(?<class>\w+)\s+/(?<method>\w+)(\s+#(?<paramName>\w+)\s+(?<paramValue>[\S\s]+?))*$";
+            string paramPattern = @"#([A-Za-z]+)\s+(\S+)";
             Match match = Regex.Match(command, pattern);
-            MatchCollection paramMatches = Regex.Matches(command, pattern);
+            MatchCollection paramMatches = Regex.Matches(command, paramPattern);
             if (!match.Success)
             {
                 Debug.LogError("无法解析指令");
@@ -237,8 +238,8 @@ namespace TFramework.Console
             parameterMap.Clear();
             foreach (Match paramMatch in paramMatches)
             {
-                string paramName = paramMatch.Groups["paramName"].Value;
-                string paramValue = paramMatch.Groups["paramValue"].Value;
+                string paramName = paramMatch.Groups[1].Value;
+                string paramValue = paramMatch.Groups[2].Value;
 
                 // 将参数名和值存入字典
                 parameterMap[paramName] = paramValue;

@@ -11,6 +11,8 @@ namespace TFramework.Runtime
 
         protected Dictionary<Type, Delegate> _eventMap = new();
 
+     
+
         #region System
 
         protected Dictionary<Type, BaseSystem> _systemMap = new();
@@ -68,7 +70,7 @@ namespace TFramework.Runtime
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        protected T GetSystem<T>() where T : BaseSystem
+        public T GetSystem<T>() where T : BaseSystem
         {
             var type = typeof(T);
             if (_systemMap.TryGetValue(type, out var value))
@@ -117,7 +119,7 @@ namespace TFramework.Runtime
         /// <summary>
         /// 清空模块
         /// </summary>
-        protected void ClearModule()
+        public void ClearModule()
         {
             foreach (var module in _moduleMap.Values)
             {
@@ -132,7 +134,7 @@ namespace TFramework.Runtime
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        protected T GetModule<T>() where T : BaseModule,new()
+        public T GetModule<T>() where T : BaseModule,new()
         {
             var type = typeof(T);
             if (_moduleMap.TryGetValue(type, out var value))

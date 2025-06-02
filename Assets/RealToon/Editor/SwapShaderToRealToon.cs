@@ -85,7 +85,7 @@ namespace RealToon.Tools
 
         #endregion
 
-        [MenuItem("Window/RealToon/Shader Swap to RealToon")]
+        [UnityEditor.MenuItem("Window/RealToon/Shader Swap to RealToon")]
         static void Init()
         {
             EdiWin = GetWindow<SwapShaderToRealToon>(true);
