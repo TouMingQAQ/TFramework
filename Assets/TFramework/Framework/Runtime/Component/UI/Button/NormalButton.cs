@@ -136,6 +136,8 @@ namespace TFramework.Component.UI
 
         public void OnPointerClick(PointerEventData eventData)
         {
+            if(isPressing)
+                return;//按压中不触发Click
             onClick?.Invoke();
             if(eventData.button == PointerEventData.InputButton.Left)
                 onLeftClick?.Invoke();
