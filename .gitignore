@@ -76,3 +76,6 @@ crashlytics-build.properties
 ignore.conf
 .plastic
 Assets/_Scenes
+fmod_editor.log
+Assets/Plugins/FMOD/Cache
+Assets/Plugins/FMOD/Cache

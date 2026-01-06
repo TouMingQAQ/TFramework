@@ -34,27 +34,87 @@ namespace VFavorites
 
 
 
-                // migrateDataFromV1
+                // // migrateDataFromV1
 
-                if (!EditorPrefs.HasKey("vFavorites-guids-" + GetProjectId())) return;
-                if (EditorPrefs.HasKey("vHierarchy-dataMigrationFromV1Attempted-" + GetProjectId())) return;
+                // if (!EditorPrefsCached.HasKey("vFavorites-guids-" + GetProjectId())) return;
+                // if (EditorPrefsCached.HasKey("vHierarchy-dataMigrationFromV1Attempted-" + GetProjectId())) return;
 
-                EditorPrefs.SetBool("vHierarchy-dataMigrationFromV1Attempted-" + GetProjectId(), true);
-
-
-                if (!data.pages.Any())
-                    data.pages.Add(new Page("Page 1"));
+                // EditorPrefsCached.SetBool("vHierarchy-dataMigrationFromV1Attempted-" + GetProjectId(), true);
 
 
-                var guidsFromV1 = EditorPrefs.GetString("vFavorites-guids-" + GetProjectId()).Split('-').Where(r => r != "").ToList();
-
-                foreach (var guid in guidsFromV1)
-                    if (AssetDatabase.LoadAssetAtPath<Object>(guid.ToPath()) is Object obj)
-                        data.pages.First().items.Add(new Item(obj));
+                // if (!data.pages.Any())
+                //     data.pages.Add(new Page("Page 1"));
 
 
-                data.Dirty();
-                data.Save();
+                // var guidsFromV1 = EditorPrefsCached.GetString("vFavorites-guids-" + GetProjectId()).Split('-').Where(r => r != "").ToList();
+
+                // foreach (var guid in guidsFromV1)
+                //     if (AssetDatabase.LoadAssetAtPath<Object>(guid.ToPath()) is Object obj)
+                //         data.pages.First().items.Add(new Item(obj));
+
+
+                // data.Dirty();
+                // data.Save();
+
+            }
+            void closeNavbarSearch()
+            {
+                if (!curEvent.isLayout) return;
+                if (t_VFolders == null) return;
+
+
+                if (GUI.GetNameOfFocusedControl() == "navbar search field")
+                    GUI.FocusControl(null);
+
+                if (!wrappedBrowser.GetMemberValue<string>("m_SearchFieldText").IsNullOrEmpty())
+                {
+                    wrappedBrowser.SetMemberValue("m_SearchFieldText", "");
+                    wrappedBrowser.GetMemberValue("m_SearchFilter").SetMemberValue("m_NameFilter", "");
+
+                    wrappedBrowser.InvokeMethod("UpdateSearchDelayed");
+
+                    GUIUtility.keyboardControl = 0;
+                }
+
+
+                // mouse input on vFavorites throws exceptions if search is active on vFolders navbar
+                // here we close search to avoid this
+
+            }
+
+            void pageScroll()
+            {
+                if (!curEvent.isScroll) return;
+                if (!VFavoritesMenu.pageScrollEnabled) return;
+
+
+
+                var scrollDelta = curEvent.mouseDelta.y;
+
+                if (scrollDelta == 0 && curEvent.holdingShift)
+                    scrollDelta = curEvent.mouseDelta.x;
+
+                if (scrollDelta < 0 && data.curPageIndex == 0) return;
+
+
+
+                if (scrollDelta < 0)
+                {
+                    data.curPageIndex--;
+                    prevPageButtonBrightness = 2;
+                }
+
+                if (scrollDelta > 0)
+                {
+                    data.curPageIndex++;
+                    nextPageButtonBrightness = 2;
+
+                }
+
+                CancelDragging();
+                CancelRowAnimations();
+
+                curEvent.Use();
 
             }
 
@@ -324,6 +384,7 @@ namespace VFavorites
                                 GUI.Label(iconRect, EditorGUIUtility.IconContent("CrossIcon"));
                                 ResetGUIColor();
 
+                                buttonRect.MarkInteractive();
 
 
                                 if (!mousePressedOnCrossButtonArea) return;
@@ -366,6 +427,8 @@ namespace VFavorites
 
                             }
 
+
+                            rowRect.MarkInteractive();
 
                             set_highlightAmount();
 
@@ -410,6 +473,10 @@ namespace VFavorites
 
 
                         if (curEvent.isRepaint && skipNextRepaint) { skipNextRepaint = false; return; }
+
+
+                        if (curEvent.holdingShift && curEvent.isScroll)
+                            curEvent.e.delta = new Vector2(0, curEvent.e.delta.x + curEvent.e.delta.y);
 
 
                         GUILayout.BeginArea(pageRect);
@@ -469,6 +536,10 @@ namespace VFavorites
                 if (pagesScrollPos == -1)
                     pagesScrollPos = data.curPageIndex;
 
+                while (data.pages.Count <= pagesScrollPos.CeilToInt())
+                    data.pages.Add(new Page("Page " + (data.pages.Count + 1)));
+
+
                 for (int i = pagesScrollPos.FloorToInt(); i <= pagesScrollPos.CeilToInt(); i++)
                     page(totalRect_groupSpace.SetX((totalRect_groupSpace.width + spaceBetweenPages) * (i - pagesScrollPos)), data.pages[i]);
 
@@ -509,6 +580,8 @@ namespace VFavorites
 
                     var buttonRect = widgetRect_groupSpace.SetWidthFromMid(data.curPage.name.GetLabelWidth(textSize) - 2);
 
+                    buttonRect.MarkInteractive();
+
 
                     var activated = curEvent.isMouseUp && buttonRect.IsHovered();
 
@@ -541,11 +614,14 @@ namespace VFavorites
                     var iconRect = widgetRect_groupSpace.SetWidth(chevronOffset * 2).SetSizeFromMid(chevronSize, chevronSize);
                     var buttonRect = Rect.zero.SetX(0).SetY(widgetRect_groupSpace.y).SetXMax(iconRect.xMax + 4).SetYMax(totalRect_groupSpace.yMax);
 
+                    buttonRect.MarkInteractive();
+
+
                     var active = data.curPageIndex > 0;
                     var activated = curEvent.isMouseUp && buttonRect.IsHovered();
 
 
-                    var brightness = !buttonRect.IsHovered() || !active ? chevronBrightness : (mousePressed ? .75f : 1);
+                    var brightness = prevPageButtonBrightness * (!buttonRect.IsHovered() || !active ? chevronBrightness : (mousePressed ? .75f : 1));
 
                     SetGUIColor(Greyscale(brightness));
 
@@ -577,11 +653,14 @@ namespace VFavorites
                     var iconRect = widgetRect_groupSpace.SetWidthFromRight(chevronOffset * 2).SetSizeFromMid(chevronSize, chevronSize);
                     var buttonRect = Rect.zero.SetX(iconRect.x - 6).SetY(widgetRect_groupSpace.y).SetXMax(totalRect_groupSpace.xMax).SetYMax(totalRect_groupSpace.yMax);
 
+                    buttonRect.MarkInteractive();
+
+
                     var active = true;// data.curPageIndex < data.pages.Count - 1 && data.curPage.items.Any();
                     var activated = curEvent.isMouseUp && buttonRect.IsHovered();
 
 
-                    var brightness = !buttonRect.IsHovered() || !active ? chevronBrightness : (mousePressed ? .75f : 1);
+                    var brightness = nextPageButtonBrightness * (!buttonRect.IsHovered() || !active ? chevronBrightness : (mousePressed ? .75f : 1));
 
                     SetGUIColor(Greyscale(brightness));
 
@@ -640,6 +719,7 @@ namespace VFavorites
                     var iconRect = widgetRect_groupSpace.SetWidth(chevronOffset * 2).SetSizeFromMid(chevronSize - 2);
                     var buttonRect = iconRect.SetSizeFromMid(25, 25);
 
+                    buttonRect.MarkInteractive();
 
 
                     var brightness = !buttonRect.IsHovered() ? chevronBrightness : (mousePressed ? .75f : 1);
@@ -669,6 +749,7 @@ namespace VFavorites
                     var iconRect = widgetRect_groupSpace.SetWidthFromRight(chevronOffset * 2).SetSizeFromMid(chevronSize - 0);
                     var buttonRect = iconRect.SetSizeFromMid(25, 25);
 
+                    buttonRect.MarkInteractive();
 
 
                     var brightness = !buttonRect.IsHovered() ? chevronBrightness : (mousePressed ? .75f : 1);
@@ -688,6 +769,9 @@ namespace VFavorites
 
                     renamingPage = false;
 
+                    data.Dirty();
+                    data.Save();
+
                 }
                 void acceptRename_enterKey()
                 {
@@ -695,6 +779,9 @@ namespace VFavorites
                     if (curEvent.keyCode != KeyCode.Return) return;
 
                     renamingPage = false;
+
+                    data.Dirty();
+                    data.Save();
 
                 }
                 void cancelRename_escapeKey()
@@ -733,7 +820,7 @@ namespace VFavorites
                 {
                     if (!curEvent.isKeyDown) return;
                     if (curEvent.keyCode != KeyCode.LeftArrow) return;
-                    if (!VFavoritesMenu.changePagesWithArrowsEnabled) return;
+                    if (!VFavoritesMenu.arrowKeysEnabled) return;
                     if (data.curPageIndex == 0) return;
 
                     CancelDragging();
@@ -741,19 +828,23 @@ namespace VFavorites
 
                     data.curPageIndex--;
 
+                    prevPageButtonBrightness = 2;
+
                     curEvent.Use();
 
                 }
                 void nextPage()
                 {
-                    if (!curEvent.isKeyDown) return;
                     if (curEvent.keyCode != KeyCode.RightArrow) return;
-                    if (!VFavoritesMenu.changePagesWithArrowsEnabled) return;
+                    if (!curEvent.isKeyDown) return;
+                    if (!VFavoritesMenu.arrowKeysEnabled) return;
 
                     CancelDragging();
                     CancelRowAnimations();
 
                     data.curPageIndex++;
+
+                    nextPageButtonBrightness = 2;
 
                     curEvent.Use();
 
@@ -762,9 +853,12 @@ namespace VFavorites
                 {
                     if (!curEvent.isKeyDown) return;
                     if (curEvent.keyCode != KeyCode.UpArrow) return;
-                    if (!VFavoritesMenu.changeSelectionWithArrowsEnabled) return;
+                    if (!VFavoritesMenu.arrowKeysEnabled) return;
 
                     var iToSelect = data.curPage.items.IndexOfFirst(r => r.isSelected) - 1;
+
+                    if (iToSelect < 0)
+                        iToSelect = data.curPage.items.LastIndex();
 
                     if (iToSelect.IsInRangeOf(data.curPage.items))
                         SelectItem(data.curPage.items[iToSelect]);
@@ -776,9 +870,12 @@ namespace VFavorites
                 {
                     if (!curEvent.isKeyDown) return;
                     if (curEvent.keyCode != KeyCode.DownArrow) return;
-                    if (!VFavoritesMenu.changeSelectionWithArrowsEnabled) return;
+                    if (!VFavoritesMenu.arrowKeysEnabled) return;
 
                     var iToSelect = data.curPage.items.IndexOfFirst(r => r.isSelected) + 1;
+
+                    if (iToSelect >= data.curPage.items.Count)
+                        iToSelect = 0;
 
                     if (iToSelect.IsInRangeOf(data.curPage.items))
                         SelectItem(data.curPage.items[iToSelect]);
@@ -786,26 +883,24 @@ namespace VFavorites
                     curEvent.Use();
 
                 }
-                void selectByNumberKey()
+                void numberKeys()
                 {
                     if (!curEvent.isKeyDown) return;
-                    if (!VFavoritesMenu.setSelectionWithNumberKeysEnabled) return;
+                    if (!VFavoritesMenu.numberKeysEnabled) return;
                     if (EditorGUIUtility.editingTextField) return;
 
-                    var i = ((int)curEvent.keyCode - 49);
 
-                    if (!i.IsInRange(0, 9)) return;
-                    if (!i.IsInRangeOf(data.curPage.items)) return;
+                    var i = ((int)curEvent.keyCode - 48);
 
-                    if (i == lastNumberKeyPressedIndex && EditorApplication.timeSinceStartup - lastNumberKeyPressedTime_ticks < .3f)
-                        OpenItem(data.curPage.items[i]);
-                    else
-                        SelectItem(data.curPage.items[i]);
+                    if (i == 0) i = 10;
 
-                    lastNumberKeyPressedIndex = i;
-                    lastNumberKeyPressedTime_ticks = System.DateTime.UtcNow.Ticks;
+                    if (!i.IsInRange(1, 10)) return;
+
+
+                    data.curPageIndex = i - 1;
 
                     curEvent.Use();
+
 
                 }
 
@@ -813,15 +908,12 @@ namespace VFavorites
                 nextPage();
                 selectPrev();
                 selectNext();
-                selectByNumberKey();
+                numberKeys();
 
             }
 
-            void onRepaint()
+            void doOriginalGUIFirst_()
             {
-                if (!curEvent.isRepaint) return;
-
-
                 originalBrowserGUI();
 
                 GUI.BeginGroup(totalRect_browserSpace);
@@ -835,12 +927,10 @@ namespace VFavorites
                 GUI.EndGroup();
 
             }
-            void onOtherEvents()
+            void doVFavoritesGUIFirst_()
             {
-                if (curEvent.isRepaint) return;
-
-
                 keys();
+                pageScroll();
 
                 GUI.BeginGroup(totalRect_browserSpace);
 
@@ -865,27 +955,48 @@ namespace VFavorites
                     if (originalGUICalledOnce) // needs to be called once to init stuff so pinging object won't throw exceptions
                         return;
 
-                origBrowserOnGUIDelegate.GetMethodInfo().Invoke(wrappedBrowser, null);
+
+
+                if (origBrowserOnGUIDelegate.GetMethodInfo().IsStatic) // wrapped by vFolders 
+                    origBrowserOnGUIDelegate.GetMethodInfo().Invoke(null, new[] { wrappedBrowser });
+                else
+                    origBrowserOnGUIDelegate.GetMethodInfo().Invoke(wrappedBrowser, null);
 
                 originalGUICalledOnce = true;
 
             }
 
 
+
+
             createData();
+            closeNavbarSearch();
 
             UpdateMouseState();
             UpdateDragging();
-            UpdateAnimations();
 
-            onRepaint();
-            onOtherEvents();
+
+            var doOriginalGUIFirst = VFavoritesMenu.pageScrollEnabled ? curEvent.isRepaint || curEvent.isLayout
+                                                                      : curEvent.isRepaint;
+
+            if (renamingPage)
+                doOriginalGUIFirst = !curEvent.isMouseDown && !curEvent.isMouseUp;
+
+            if (renamingPage && curEvent.isMouseDown)
+                curEvent.Use();
+
+
+            if (doOriginalGUIFirst)
+                doOriginalGUIFirst_();
+            else
+                doVFavoritesGUIFirst_();
 
 
             if (isWrappedBrowserLocked)
                 if (!totalRect_browserSpace.IsHovered() && !animatingDroppedItem && !animatingPageScroll) return;
 
-            wrappedBrowser.Repaint();
+            if (animatingOpacity || animatingDroppedItem || animatingPageScroll || animatingRowGaps)
+                wrappedBrowser.Repaint();
 
         }
 
@@ -896,12 +1007,20 @@ namespace VFavorites
                 var folderAsset = AssetDatabase.LoadAssetAtPath<Object>(path);
 
                 if (browser.GetFieldValue<int>("m_ViewMode") == 1)
+#if UNITY_6000_3_OR_NEWER
+                    browser.InvokeMethod("SetFolderSelection", new[] { (EntityId)folderAsset.GetInstanceID() }, false);
+#else
                     browser.InvokeMethod("SetFolderSelection", new[] { folderAsset.GetInstanceID() }, false);
+#endif
                 else
                 {
                     Selection.activeObject = folderAsset;
 
+#if UNITY_6000_3_OR_NEWER
+                    browser.GetMemberValue("m_AssetTree")?.GetPropertyValue("data")?.InvokeMethod("SetExpanded", (EntityId)folderAsset.GetInstanceID(), true);
+#else
                     browser.GetMemberValue("m_AssetTree")?.GetPropertyValue("data")?.InvokeMethod("SetExpanded", folderAsset.GetInstanceID(), true);
+#endif
 
                 }
 
@@ -989,6 +1108,7 @@ namespace VFavorites
             void openScene()
             {
                 if (item.type != typeof(SceneAsset)) return;
+                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return; // if clicked cancel
 
                 EditorSceneManager.SaveOpenScenes();
                 EditorSceneManager.OpenScene(item.assetPath);
@@ -1019,7 +1139,20 @@ namespace VFavorites
         static float crossButtonOffsetFromRight = 23;
         static float crossButtonSize = 16;
 
-        static Rect totalRect_browserSpace => isOneColumn ? wrappedBrowser.position.SetPos(0, 0) : wrappedBrowser.GetFieldValue<Rect>("m_TreeViewRect");
+        static Rect totalRect_browserSpace
+        {
+            get
+            {
+                if (isOneColumn)
+                    return wrappedBrowser.position.SetPos(0, 0);
+
+
+                var treeViewRect = wrappedBrowser.GetFieldValue<Rect>("m_TreeViewRect");
+
+                return wrappedBrowser.position.SetPos(0, 0).SetWidth(treeViewRect.width).SetHeightFromBottom(treeViewRect.height);
+
+            }
+        }
         static Rect totalRect_groupSpace => totalRect_browserSpace.SetPos(0, 0);
 
         static Rect widgetRect_browserSpace => widgetRect_groupSpace.MoveY(totalRect_browserSpace.y);
@@ -1114,6 +1247,7 @@ namespace VFavorites
 
         static float mouseDragDistance => (mousePosiion_browserSpace - mouseDownPosiion_browserSpace).magnitude;
 
+
         static Item pressedItem;
 
 
@@ -1121,12 +1255,10 @@ namespace VFavorites
 
 
 
-        static void UpdateAnimations() // called from WrappedOnGUI  
+        static void UpdateAnimations() // Update
         {
             void calcDeltaTime()
             {
-                if (!curEvent.isLayout) return;
-
                 deltaTime = (float)(EditorApplication.timeSinceStartup - lastLayoutTime);
 
                 if (deltaTime > .05f)
@@ -1137,7 +1269,6 @@ namespace VFavorites
             }
             void opacity()
             {
-                if (!curEvent.isLayout) return;
                 if (!VFavoritesMenu.fadeAnimationsEnabled) { currentOpacity = targetOpacity; return; }
                 if (!UnityEditorInternal.InternalEditorUtility.isApplicationActive) { currentOpacity = targetOpacity; return; }
 
@@ -1149,7 +1280,7 @@ namespace VFavorites
             }
             void pagesScroll()
             {
-                if (!curEvent.isLayout) return;
+                if (!data) return;
                 if (!VFavoritesMenu.pageScrollAnimationEnabled) { pagesScrollPos = data.curPageIndex; return; }
 
                 if (pagesScrollPos == -1)
@@ -1163,17 +1294,17 @@ namespace VFavorites
             }
             void rowGaps()
             {
-                if (!curEvent.isLayout) return;
+                if (!data) return;
 
                 var lerpSpeed = 10;
 
                 for (int i = 0; i < data.curPage.rowGaps.Count; i++)
                     data.curPage.rowGaps[i] = Lerp(data.curPage.rowGaps[i], draggingItem && i == insertDraggedItemAtIndex ? rowHeight : 0, lerpSpeed, deltaTime);
 
+
             }
             void droppedItem()
             {
-                if (!curEvent.isLayout) return;
                 if (!animatingDroppedItem) return;
 
                 var yLerpSpeed = 8;
@@ -1188,12 +1319,24 @@ namespace VFavorites
                     animatingDroppedItem = false;
 
             }
+            void pageButtons()
+            {
+                if (!VFavoritesMenu.pageScrollAnimationEnabled) { prevPageButtonBrightness = nextPageButtonBrightness = 1; return; }
+
+                var lerpSpeed = 7;
+
+                Lerp(ref prevPageButtonBrightness, 1, lerpSpeed, deltaTime);
+                Lerp(ref nextPageButtonBrightness, 1, lerpSpeed, deltaTime);
+
+
+            }
 
             calcDeltaTime();
             opacity();
             pagesScroll();
             rowGaps();
             droppedItem();
+            pageButtons();
 
         }
 
@@ -1210,9 +1353,11 @@ namespace VFavorites
         static float deltaTime;
         static double lastLayoutTime;
 
+        static bool animatingRowGaps => data.curPage.rowGaps.Any(r => r > .1f && r < rowHeight - .1f);
+
         static float pagesScrollPos = -1;
         static float pagesScrollDerivative;
-        static bool animatingPageScroll => !pagesScrollPos.Approx(pagesScrollPos.Round());
+        static bool animatingPageScroll => !pagesScrollPos.Approx(data ? data.curPageIndex : 0);
 
         static float droppedItemY_rowsSpace;
         static float droppedItemYDerivative;
@@ -1220,10 +1365,13 @@ namespace VFavorites
         static float droppedItemHighlightAmount;
         static bool animatingDroppedItem;
 
+        static float prevPageButtonBrightness = 1;
+        static float nextPageButtonBrightness = 1;
+
         static float currentOpacity;
         static float currentOpacityDerivative;
-        static float targetOpacity => curEvent.holdingAlt || renamingPage || draggingItemFromPageToOutside || isWrappedBrowserLocked ? 1 : 0; // holdingAlt instead of shortcutPressed to prevent unwrapping due to incorrect event modifiers on key down on mac
-
+        static float targetOpacity => isAltPressed || renamingPage || draggingItemFromPageToOutside || isWrappedBrowserLocked ? 1 : 0; // holdingAlt instead of shortcutPressed to prevent unwrapping due to incorrect event modifiers on key down on mac
+        static bool animatingOpacity => currentOpacity.DistanceTo(targetOpacity) > .01f;
 
 
 
@@ -1410,7 +1558,7 @@ namespace VFavorites
             mousePressed = false;
 
 
-            if (!draggingItemFromPage) { draggedItem = null; return; }
+            if (!draggingItemFromPage) { draggedItem = null; EditorGUIUtility.hotControl = 0; return; }
 
             data.curPage.items.AddAt(draggedItem, draggingItemFromPageAtIndex);
 
@@ -1465,7 +1613,7 @@ namespace VFavorites
                 if (!UnityEditorInternal.InternalEditorUtility.isApplicationActive) return;
                 if (!shortcutPressed) return;
                 if (EditorWindow.mouseOverWindow?.GetType() != t_BrowserWindow) return;
-                if (t_VTabs != null && !EditorPrefs.GetBool("vFavorites-pluginDisabled", false) && EditorWindow.mouseOverWindow.GetMemberValue<bool>("isLocked")) return;
+                if (t_VTabs != null && !EditorPrefsCached.GetBool("vTabs-pluginDisabled", false) && EditorWindow.mouseOverWindow.GetMemberValue<bool>("isLocked")) return;
 
 
                 WrapBrowserGUI(EditorWindow.mouseOverWindow);
@@ -1476,6 +1624,9 @@ namespace VFavorites
                 wrappedBrowser.Repaint();
 
                 t_BrowserWindow.SetFieldValue("s_LastInteractedProjectBrowser", wrappedBrowser); // so vTabs can copy its layout setting
+
+
+                wrappedBrowserWasLockedBeforeWrapping = wrappedBrowser.GetMemberValue<bool>("isLocked");
 
             }
             void unwrap()
@@ -1504,7 +1655,7 @@ namespace VFavorites
         static void WrapBrowserGUI(EditorWindow browser)
         {
             var hostView = fi_m_Parent.GetValue(browser);
-            var newDelegate = mi_OnGUIOverride.CreateDelegate(t_EditorWindowDelegate, hostView);
+            var newDelegate = mi_WrappedOnGUI.CreateDelegate(t_EditorWindowDelegate, hostView);
 
             origBrowserOnGUIDelegate = fi_m_OnGUI.GetValue(hostView) as System.Delegate;
             fi_m_OnGUI.SetValue(hostView, newDelegate);
@@ -1512,7 +1663,7 @@ namespace VFavorites
         }
         static void UnwrapBrowserGUI()
         {
-            if (wrappedBrowser.GetFieldValue("m_Parent").GetFieldValue<System.Delegate>("m_OnGUI").Method.Name != nameof(WrappedOnGUI)) return;
+            if (wrappedBrowser.GetFieldValue("m_Parent").GetFieldValue<System.Delegate>("m_OnGUI").Method != mi_WrappedOnGUI) return;
 
             wrappedBrowser.GetFieldValue("m_Parent").SetFieldValue("m_OnGUI", origBrowserOnGUIDelegate);
 
@@ -1521,12 +1672,14 @@ namespace VFavorites
         static EditorWindow wrappedBrowser;
         static System.Delegate origBrowserOnGUIDelegate;
 
+        static bool wrappedBrowserWasLockedBeforeWrapping;
+
         static bool shortcutPressed
         {
             get
             {
                 if (VFavoritesMenu.activeOnAltEnabled)
-                    return curEvent.holdingAlt;
+                    return isAltPressed;
 
                 if (VFavoritesMenu.activeOnAltShiftEnabled)
                     return curEvent.modifiers == (EventModifiers.Alt | EventModifiers.Shift);
@@ -1537,9 +1690,40 @@ namespace VFavorites
                     else
                         return curEvent.modifiers == (EventModifiers.Control | EventModifiers.Alt);
 
+
                 return false;
+
             }
         }
+
+
+
+
+        static bool isAltPressed
+        {
+            get
+            {
+#if !UNITY_EDITOR_LINUX
+                return curEvent.holdingAlt;
+#else
+
+                if (curEvent.holdingAlt)
+                    _isAltPressed_cachedForLinux = true;
+
+                else if (curEvent.keyCode == KeyCode.LeftAlt)
+                    if (curEvent.isKeyDown)
+                        _isAltPressed_cachedForLinux = true;
+
+                    else if (curEvent.isKeyUp)
+                        _isAltPressed_cachedForLinux = false;
+
+
+                return _isAltPressed_cachedForLinux;
+
+#endif
+            }
+        }
+        static bool _isAltPressed_cachedForLinux;
 
 
 
@@ -1552,7 +1736,7 @@ namespace VFavorites
             {
                 if (!isWrappedBrowserLocked) return;
 
-                if (wrappedBrowser.GetFieldValue("m_Parent").GetFieldValue<System.Delegate>("m_OnGUI").Method.Name == nameof(WrappedOnGUI)) return;
+                if (wrappedBrowser.GetFieldValue("m_Parent").GetFieldValue<System.Delegate>("m_OnGUI").Method == mi_WrappedOnGUI) return;
 
                 wrappedBrowser = null;
 
@@ -1577,17 +1761,30 @@ namespace VFavorites
                 lockedBrowser.minSize = Vector2.one * 100;
 
             }
+            void setTitle()
+            {
+
+                if (!lockedBrowser) return;
+                if (lockedBrowser.GetFieldValue<int>("m_ViewMode") != 0) return; // one column)
+                if (lockedBrowser.titleContent.text == "vFavorites") return;
+
+                var icon = EditorIcons.GetIcon("Favorite");
+
+                lockedBrowser.titleContent = new GUIContent("vFavorites", icon);
+
+            }
 
             void lock_()
             {
                 if (lockedBrowser) return;
                 if (!wrappedBrowser) return;
                 if (!wrappedBrowser.GetMemberValue<bool>("isLocked")) return;
+                if (wrappedBrowserWasLockedBeforeWrapping) return;
 
                 lockedBrowser = wrappedBrowser;
 
-                EditorPrefs.SetInt("vFavorites-lockedBrowserHash", lockedBrowser.GetHashCode());
-                EditorPrefs.SetInt("vFavorites-lockedBrowserDockAreaInstanceId", lockedBrowser.GetMemberValue<Object>("m_Parent").GetInstanceID());
+                EditorPrefsCached.SetInt("vFavorites-lockedBrowserHash", lockedBrowser.GetHashCode());
+                EditorPrefsCached.SetInt("vFavorites-lockedBrowserDockAreaInstanceId", lockedBrowser.GetMemberValue<Object>("m_Parent").GetInstanceID());
 
                 curEvent.Use();
 
@@ -1598,10 +1795,12 @@ namespace VFavorites
                 if (lockedBrowser.GetMemberValue<bool>("isLocked")) return;
 
 
+                lockedBrowser.titleContent = lockedBrowser.InvokeMethod<GUIContent>("GetLocalizedTitleContent");
+
                 lockedBrowser = null;
 
-                EditorPrefs.SetInt("vFavorites-lockedBrowserHash", 0);
-                EditorPrefs.SetInt("vFavorites-lockedBrowserDockAreaInstanceId", 0);
+                EditorPrefsCached.SetInt("vFavorites-lockedBrowserHash", 0);
+                EditorPrefsCached.SetInt("vFavorites-lockedBrowserDockAreaInstanceId", 0);
 
                 curEvent.Use();
 
@@ -1624,6 +1823,7 @@ namespace VFavorites
             unsetWrappedBrowser();
             markLockedBrowser();
             setMinWidthOnLockedBrowser();
+            setTitle();
 
             lock_();
             unlock();
@@ -1638,13 +1838,13 @@ namespace VFavorites
                 if (_lockedBrowser) return _lockedBrowser;
 
 
-                var lockedBrowserInstanceId = EditorPrefs.GetInt("vFavorites-lockedBrowserInstanceId", 0);
+                var lockedBrowserInstanceId = EditorPrefsCached.GetInt("vFavorites-lockedBrowserInstanceId", 0);
 
                 if (lockedBrowserInstanceId == 0) return null;
 
 
 
-                var window = Resources.InstanceIDToObject(lockedBrowserInstanceId) as EditorWindow;
+                var window = _EditorUtility_InstanceIDToObject(lockedBrowserInstanceId) as EditorWindow;
 
                 if (window && window.GetType() == t_BrowserWindow) // prevents iid collisions
                     _lockedBrowser = window;
@@ -1659,7 +1859,7 @@ namespace VFavorites
 
 
 
-                // EditorPrefs.SetInt("vFavorites-lockedBrowserInstanceId", 0); // one attempt to find the locked browser isn't enough after unmaximize
+                // EditorPrefsCached.SetInt("vFavorites-lockedBrowserInstanceId", 0); // one attempt to find the locked browser isn't enough after unmaximize
 
                 return null;
 
@@ -1671,14 +1871,14 @@ namespace VFavorites
 
                 if (value == null)
                 {
-                    EditorPrefs.SetInt("vFavorites-lockedBrowserInstanceId", 0);
+                    EditorPrefsCached.SetInt("vFavorites-lockedBrowserInstanceId", 0);
 
                     _lockedBrowser = null;
 
                 }
                 else
                 {
-                    EditorPrefs.SetInt("vFavorites-lockedBrowserInstanceId", value.GetInstanceID());
+                    EditorPrefsCached.SetInt("vFavorites-lockedBrowserInstanceId", value.GetInstanceID());
 
                     MarkAsLocked(value);
 
@@ -1699,6 +1899,21 @@ namespace VFavorites
         static bool CanBrowserBeWrapped_byVTabs(EditorWindow browser) => !IsMarkedAsLocked(browser);
 
 
+
+
+        static void RepaintOnAltUp() // Update 
+        {
+            var lastEvent = typeof(Event).GetFieldValue<Event>("s_Current");
+
+            if (wasAlt && !lastEvent.alt)
+                if (EditorWindow.mouseOverWindow?.GetType() == t_BrowserWindow)
+                    EditorApplication.RepaintProjectWindow();
+
+            wasAlt = lastEvent.alt;
+
+        }
+
+        static bool wasAlt;
 
 
 
@@ -1724,13 +1939,21 @@ namespace VFavorites
                 EditorApplication.update -= UpdateLocking;
                 EditorApplication.update += UpdateLocking;
 
+                EditorApplication.update -= UpdateAnimations;
+                EditorApplication.update += UpdateAnimations;
+
+                EditorApplication.update -= RepaintOnAltUp;
+                EditorApplication.update += RepaintOnAltUp;
+
+
+
                 EditorApplication.quitting -= VFavoritesState.Save;
                 EditorApplication.quitting += VFavoritesState.Save;
 
             }
             void loadData()
             {
-                data = AssetDatabase.LoadAssetAtPath<VFavoritesData>(EditorPrefs.GetString("vFavorites-lastKnownDataPath-" + GetProjectId()));
+                data = AssetDatabase.LoadAssetAtPath<VFavoritesData>(EditorPrefsCached.GetString("vFavorites-lastKnownDataPath-" + GetProjectId()));
 
 
                 if (data) return;
@@ -1740,7 +1963,7 @@ namespace VFavorites
 
                 if (!data) return;
 
-                EditorPrefs.SetString("vFavorites-lastKnownDataPath-" + GetProjectId(), data.GetPath());
+                EditorPrefsCached.SetString("vFavorites-lastKnownDataPath-" + GetProjectId(), data.GetPath());
 
             }
             void loadDataDelayed()
@@ -1797,7 +2020,7 @@ namespace VFavorites
         static Type t_EditorWindowDelegate = t_HostView.GetNestedType("EditorWindowDelegate", maxBindingFlags);
         static FieldInfo fi_m_Parent = typeof(EditorWindow).GetField("m_Parent", maxBindingFlags);
         static FieldInfo fi_m_OnGUI = t_HostView.GetField("m_OnGUI", maxBindingFlags);
-        static MethodInfo mi_OnGUIOverride = typeof(VFavorites).GetMethod(nameof(WrappedOnGUI), maxBindingFlags);
+        static MethodInfo mi_WrappedOnGUI = typeof(VFavorites).GetMethod(nameof(WrappedOnGUI), maxBindingFlags);
 
 
         static Type t_VHierarchy = Type.GetType("VHierarchy.VHierarchy") ?? Type.GetType("VHierarchy.VHierarchy, VHierarchy, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
@@ -1811,7 +2034,7 @@ namespace VFavorites
 
 
 
-        const string version = "2.0.7";
+        const string version = "2.0.14";
 
     }
 }

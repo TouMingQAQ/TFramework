@@ -786,7 +786,7 @@ namespace VFavorites.Libs
         public struct GlobalID : System.IEquatable<GlobalID>
         {
             public Object GetObject() => GlobalObjectId.GlobalObjectIdentifierToObjectSlow(globalObjectId);
-            public int GetObjectInstanceId() => GlobalObjectId.GlobalObjectIdentifierToInstanceIDSlow(globalObjectId);
+            public int GetObjectInstanceId() => _GlobalObjectId_GlobalObjectIdentifierToInstanceIDSlow(globalObjectId);
 
 
             public string guid => globalObjectId.assetGUID.ToString();
@@ -827,7 +827,7 @@ namespace VFavorites.Libs
 
             var iids = new int[goids.Length];
 
-            GlobalObjectId.GlobalObjectIdentifiersToInstanceIDsSlow(goids, iids);
+            _GlobalObjectId_GlobalObjectIdentifiersToInstanceIDsSlow(goids, iids);
 
             return iids;
         }
@@ -1104,10 +1104,162 @@ namespace VFavorites.Libs
         static MethodInfo removeEditorErrorsMethod = System.AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(r => r.GetName().ToString().Contains("UnityEditor.CoreModule")).GetTypes().First(r => r.Name.Contains("LogEntry")).GetMethod("RemoveLogEntriesByMode", BindingFlags.Static | BindingFlags.NonPublic);
 
 
+
+        public static class EditorPrefsCached
+        {
+            public static bool GetBool(string key, bool defaultValue = false)
+            {
+                if (bools_byKey.ContainsKey(key))
+                    return bools_byKey[key];
+                else
+                    return bools_byKey[key] = EditorPrefs.GetBool(key, defaultValue);
+
+            }
+            public static float GetFloat(string key, float defaultValue = 0)
+            {
+                if (floats_byKey.ContainsKey(key))
+                    return floats_byKey[key];
+                else
+                    return floats_byKey[key] = EditorPrefs.GetFloat(key, defaultValue);
+
+            }
+            public static int GetInt(string key, int defaultValue = 0)
+            {
+                if (ints_byKey.ContainsKey(key))
+                    return ints_byKey[key];
+                else
+                    return ints_byKey[key] = EditorPrefs.GetInt(key, defaultValue);
+
+            }
+            public static string GetString(string key, string defaultValue = "")
+            {
+                if (strings_byKey.ContainsKey(key))
+                    return strings_byKey[key];
+                else
+                    return strings_byKey[key] = EditorPrefs.GetString(key, defaultValue);
+
+            }
+
+
+            public static void SetBool(string key, bool value)
+            {
+                bools_byKey[key] = value;
+
+                EditorPrefs.SetBool(key, value);
+
+            }
+            public static void SetFloat(string key, float value)
+            {
+                floats_byKey[key] = value;
+
+                EditorPrefs.SetFloat(key, value);
+
+            }
+            public static void SetInt(string key, int value)
+            {
+                ints_byKey[key] = value;
+
+                EditorPrefs.SetInt(key, value);
+
+            }
+            public static void SetString(string key, string value)
+            {
+                strings_byKey[key] = value;
+
+                EditorPrefs.SetString(key, value);
+
+            }
+
+
+            static Dictionary<string, bool> bools_byKey = new();
+            static Dictionary<string, float> floats_byKey = new();
+            static Dictionary<string, int> ints_byKey = new();
+            static Dictionary<string, string> strings_byKey = new();
+
+        }
+
+
 #endif
 
 
 
+
+
+        #endregion
+
+        #region Instance/Entity ID mess
+
+
+        static int _GlobalObjectId_GlobalObjectIdentifierToInstanceIDSlow(GlobalObjectId id)
+        {
+#if UNITY_6000_3_OR_NEWER
+            return GlobalObjectId.GlobalObjectIdentifierToEntityIdSlow(id);
+#else
+            return GlobalObjectId.GlobalObjectIdentifierToInstanceIDSlow(id);
+#endif
+
+        }
+
+        static void _GlobalObjectId_GlobalObjectIdentifiersToInstanceIDsSlow(GlobalObjectId[] identifiers, int[] outputInstanceIDs)
+        {
+#if UNITY_6000_3_OR_NEWER
+
+            var outputEntityIds = new EntityId[outputInstanceIDs.Length];
+
+            GlobalObjectId.GlobalObjectIdentifiersToEntityIdsSlow(identifiers, outputEntityIds);
+
+            for (int i = 0; i < outputEntityIds.Length; i++)
+                outputInstanceIDs[i] = (int)outputEntityIds[i];
+
+#else
+
+            GlobalObjectId.GlobalObjectIdentifiersToInstanceIDsSlow(identifiers, outputInstanceIDs);
+
+#endif
+
+        }
+
+        static void _GlobalObjectId_GetGlobalObjectIdsSlow(int[] ids, GlobalObjectId[] outputIdentifiers)
+        {
+#if UNITY_6000_3_OR_NEWER
+            GlobalObjectId.GetGlobalObjectIdsSlow(ids.Select(r => (EntityId)r).ToArray(), outputIdentifiers);
+#else
+            GlobalObjectId.GetGlobalObjectIdsSlow(ids, outputIdentifiers);
+#endif
+
+        }
+
+
+
+        public static Object _EditorUtility_InstanceIDToObject(int iid)
+        {
+#if UNITY_6000_3_OR_NEWER
+            return EditorUtility.EntityIdToObject(iid);
+#else
+            return EditorUtility.InstanceIDToObject(iid);
+#endif
+        }
+
+        public static string _AssetDatabase_GetAssetPath(int instanceID)
+        {
+#if UNITY_6000_3_OR_NEWER
+            return AssetDatabase.GetAssetPath((EntityId)instanceID);
+#else
+            return AssetDatabase.GetAssetPath(instanceID);
+#endif
+        }
+
+        public static int[] _Selection_instanceIDs
+        {
+            get
+            {
+#if UNITY_6000_3_OR_NEWER
+                return Selection.entityIds.Select(r => (int)r).ToArray();
+#else
+                return Selection.instanceIDs;
+#endif
+            }
+        }
 
 
         #endregion
@@ -1202,56 +1354,56 @@ namespace VFavorites.Libs
 
         #region Events
 
-        public struct WrappedEvent
+
+        public class WrappedEvent
         {
             public Event e;
 
-            public bool isNull => e == null;
-            public bool isRepaint => isNull ? default : e.type == EventType.Repaint;
-            public bool isLayout => isNull ? default : e.type == EventType.Layout;
-            public bool isUsed => isNull ? default : e.type == EventType.Used;
-            public bool isMouseLeaveWindow => isNull ? default : e.type == EventType.MouseLeaveWindow;
-            public bool isMouseEnterWindow => isNull ? default : e.type == EventType.MouseEnterWindow;
-            public bool isContextClick => isNull ? default : e.type == EventType.ContextClick;
+            public bool isRepaint => e.type == EventType.Repaint;
+            public bool isLayout => e.type == EventType.Layout;
+            public bool isUsed => e.type == EventType.Used;
+            public bool isMouseLeaveWindow => e.type == EventType.MouseLeaveWindow;
+            public bool isMouseEnterWindow => e.type == EventType.MouseEnterWindow;
+            public bool isContextClick => e.type == EventType.ContextClick;
 
-            public bool isKeyDown => isNull ? default : e.type == EventType.KeyDown;
-            public bool isKeyUp => isNull ? default : e.type == EventType.KeyUp;
-            public KeyCode keyCode => isNull ? default : e.keyCode;
-            public char characted => isNull ? default : e.character;
+            public bool isKeyDown => e.type == EventType.KeyDown;
+            public bool isKeyUp => e.type == EventType.KeyUp;
+            public KeyCode keyCode => e.keyCode;
+            public char characted => e.character;
 
-            public bool isExecuteCommand => isNull ? default : e.type == EventType.ExecuteCommand;
-            public string commandName => isNull ? default : e.commandName;
+            public bool isExecuteCommand => e.type == EventType.ExecuteCommand;
+            public string commandName => e.commandName;
 
-            public bool isMouse => isNull ? default : e.isMouse;
-            public bool isMouseDown => isNull ? default : e.type == EventType.MouseDown;
-            public bool isMouseUp => isNull ? default : e.type == EventType.MouseUp;
-            public bool isMouseDrag => isNull ? default : e.type == EventType.MouseDrag;
-            public bool isMouseMove => isNull ? default : e.type == EventType.MouseMove;
-            public bool isScroll => isNull ? default : e.type == EventType.ScrollWheel;
-            public int mouseButton => isNull ? default : e.button;
-            public int clickCount => isNull ? default : e.clickCount;
-            public Vector2 mousePosition => isNull ? default : e.mousePosition;
-            public Vector2 mousePosition_screenSpace => isNull ? default : GUIUtility.GUIToScreenPoint(e.mousePosition);
-            public Vector2 mouseDelta => isNull ? default : e.delta;
+            public bool isMouse => e.isMouse;
+            public bool isMouseDown => e.type == EventType.MouseDown;
+            public bool isMouseUp => e.type == EventType.MouseUp;
+            public bool isMouseDrag => e.type == EventType.MouseDrag;
+            public bool isMouseMove => e.type == EventType.MouseMove;
+            public bool isScroll => e.type == EventType.ScrollWheel;
+            public int mouseButton => e.button;
+            public int clickCount => e.clickCount;
+            public Vector2 mousePosition => e.mousePosition;
+            public Vector2 mousePosition_screenSpace => GUIUtility.GUIToScreenPoint(e.mousePosition);
+            public Vector2 mouseDelta => e.delta;
 
-            public bool isDragUpdate => isNull ? default : e.type == EventType.DragUpdated;
-            public bool isDragPerform => isNull ? default : e.type == EventType.DragPerform;
-            public bool isDragExit => isNull ? default : e.type == EventType.DragExited;
+            public bool isDragUpdate => e.type == EventType.DragUpdated;
+            public bool isDragPerform => e.type == EventType.DragPerform;
+            public bool isDragExit => e.type == EventType.DragExited;
 
-            public EventModifiers modifiers => isNull ? default : e.modifiers;
+            public EventModifiers modifiers => e.modifiers;
             public bool holdingAnyModifierKey => modifiers != EventModifiers.None;
 
-            public bool holdingAlt => isNull ? default : e.alt;
-            public bool holdingShift => isNull ? default : e.shift;
-            public bool holdingCtrl => isNull ? default : e.control;
-            public bool holdingCmd => isNull ? default : e.command;
-            public bool holdingCmdOrCtrl => isNull ? default : e.command || e.control;
+            public bool holdingAlt => e.alt;
+            public bool holdingShift => e.shift;
+            public bool holdingCtrl => e.control;
+            public bool holdingCmd => e.command;
+            public bool holdingCmdOrCtrl => e.command || e.control;
 
-            public bool holdingAltOnly => isNull ? default : e.modifiers == EventModifiers.Alt;        // in some sessions FunctionKey is always pressed?
-            public bool holdingShiftOnly => isNull ? default : e.modifiers == EventModifiers.Shift;        // in some sessions FunctionKey is always pressed?
-            public bool holdingCtrlOnly => isNull ? default : e.modifiers == EventModifiers.Control;
-            public bool holdingCmdOnly => isNull ? default : e.modifiers == EventModifiers.Command;
-            public bool holdingCmdOrCtrlOnly => isNull ? default : (e.modifiers == EventModifiers.Command || e.modifiers == EventModifiers.Control);
+            public bool holdingAltOnly => e.modifiers == EventModifiers.Alt;        // in some sessions FunctionKey is always pressed?
+            public bool holdingShiftOnly => e.modifiers == EventModifiers.Shift;        // in some sessions FunctionKey is always pressed?
+            public bool holdingCtrlOnly => e.modifiers == EventModifiers.Control;
+            public bool holdingCmdOnly => e.modifiers == EventModifiers.Command;
+            public bool holdingCmdOrCtrlOnly => (e.modifiers == EventModifiers.Command || e.modifiers == EventModifiers.Control);
 
             public EventType type => e.type;
 
@@ -1264,9 +1416,10 @@ namespace VFavorites.Libs
 
         }
 
-        public static WrappedEvent Wrap(this Event e) => new WrappedEvent(e);
-        public static WrappedEvent curEvent => (Event.current ?? _fi_s_Current.GetValue(null) as Event).Wrap();
-        static FieldInfo _fi_s_Current = typeof(Event).GetField("s_Current", maxBindingFlags);
+        public static WrappedEvent Wrap(this Event e) => new(e);
+
+        public static WrappedEvent curEvent => _curEvent ??= typeof(Event).GetFieldValue<Event>("s_Current").Wrap();
+        static WrappedEvent _curEvent;
 
 
 
@@ -1604,7 +1757,7 @@ namespace VFavorites.Libs
 
 
 
-        public static bool IsHovered(this Rect r) => !curEvent.isNull && r.Contains(curEvent.mousePosition);
+        public static bool IsHovered(this Rect r) => r.Contains(curEvent.mousePosition);
 
         #endregion
 
