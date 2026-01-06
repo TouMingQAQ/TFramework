@@ -18,8 +18,8 @@ public class SceneStart : MonoBehaviour
 
     public async void LoadUI()
     {
-        await Framework.Instance.GetManager<UIManager>().PreLoadPanelAsync(references.ToArray(),null);
-        Framework.Instance.GetManager<UIManager>().GetSystem<UIManager.UISystem>().OpenPanel<UISamplePanel>();
+        // await Framework.Instance.GetManager<UIManager>().PreLoadPanelAsync(references.ToArray(),null);
+        // Framework.Instance.GetManager<UIManager>().GetSystem<UIManager.UISystem>().OpenPanel<UISamplePanel>();
     }
 
     public void BindUICamera()
