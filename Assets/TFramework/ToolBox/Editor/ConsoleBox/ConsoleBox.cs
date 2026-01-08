@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TFramework.Console;
 using TFramework.ToolBox.UIToolKit;
+using TFrameworkKit.Console.Command;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -47,8 +48,10 @@ namespace TFramework.ToolBox
             _tipView.itemsSource = _tipList;
             _tipView.bindItem = (element, index) =>
             {
+                var tip = _tipList[index];
                 var label = (Label) element;
-                label.text = _tipList[index];
+                label.text =tip.ShowStr;
+                label.enableRichText = true;
             };
             _submitButton.clickable.clicked += Submit;
             _input.RegisterCallback(new EventCallback<KeyDownEvent>(OnKeyDown),TrickleDown.TrickleDown);
@@ -78,9 +81,9 @@ namespace TFramework.ToolBox
                     {
                         if (TipSelectIndex >= 0 && TipSelectIndex < _tipList.Count)
                         {
-                            var value = _tipList[TipSelectIndex];
-                            _input.SetValueWithoutNotify(value);
-                            _input.SelectRange(value.Length, value.Length);
+                            var tip = _tipList[TipSelectIndex];
+                            _input.SetValueWithoutNotify(tip.InputStr);
+                            _input.SelectRange(tip.InputStr.Length, tip.InputStr.Length);
                             TipSelectIndex = -1;
                             RefreshView();
                         }
@@ -151,8 +154,8 @@ namespace TFramework.ToolBox
             }
 
         }
-        private HashSet<string> _tipHashSet = new();
-        private List<string> _tipList = new();
+        private HashSet<CommandTip> _tipHashSet = new();
+        private List<CommandTip> _tipList = new();
         private void OnInput()
         {
             var value = _input.text;

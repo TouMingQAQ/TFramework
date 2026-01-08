@@ -27,19 +27,14 @@ namespace TFrameworkKit.Console.Command
     {
         public string Name;
         public bool IsDebug;
+        public string NoteStr;
         public CommandMethodAttribute(){}
-        public CommandMethodAttribute(string name) : base()
-        {
-            Name = name;
-        }
-        public CommandMethodAttribute(bool isDebug) : base()
-        {
-            IsDebug = isDebug;
-        }
-        public CommandMethodAttribute(string name, bool isDebug) : base()
+  
+        public CommandMethodAttribute(string name = "",string note = "", bool isDebug = false) : base()
         {
             Name = name;
             IsDebug = isDebug;
+            NoteStr = note;
         }
     }
     [AttributeUsage(AttributeTargets.Parameter)]

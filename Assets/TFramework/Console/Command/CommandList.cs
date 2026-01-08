@@ -1,5 +1,8 @@
 ﻿
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Text;
 using TFrameworkKit.Console;
 using TFrameworkKit.Console.Command;
@@ -17,20 +20,20 @@ namespace Console.Command
         /// Example:/Debug /Log #M Hello World
         /// </summary>
         /// <param name="mess"></param>
-        [CommandMethod(true)]
+        [CommandMethod(isDebug:true)]
         public static void Log(
             [CommandParameter("M")]string mess)
         {
             UnityEngine.Debug.Log(mess);
         }
-        [CommandMethod(true)]
+        [CommandMethod(isDebug:true)]
         public static void LogError(
             [CommandParameter("M")]string mess)
         {
             UnityEngine.Debug.LogError(mess);
 
         }
-        [CommandMethod(true)]
+        [CommandMethod(isDebug:true)]
         public static void LogWarning(
             [CommandParameter("M")]string mess
             )
@@ -40,16 +43,32 @@ namespace Console.Command
  
     }
     [Command]
+    public static class Screen
+    {
+        [CommandMethod(note:"截屏")]
+        public static void Capture()
+        {
+            var time = DateTime.Now.ToString("yyyy-MM-dd");
+            var filePath = UnityEngine.Application.dataPath.Replace("/Assets","") + "/ScreenCapture";
+            var directoryInfo = new DirectoryInfo(filePath);
+            if(!directoryInfo.Exists)
+                directoryInfo.Create();
+            filePath += $"/Unity_{UnityEngine.Application.companyName}_{UnityEngine.Application.version}_{time}.png";
+            ScreenCapture.CaptureScreenshot(filePath);
+            Debug.Log($"Capture:{filePath}");
+        }
+    }
+    [Command]
     public static class Time
     {
-        [CommandMethod]
+        [CommandMethod(note:"设置时间缩放")]
         public static void SetTimeScale(
             [CommandParameter("S")]float timeScale)
         {
             UnityEngine.Time.timeScale = timeScale;
             UnityEngine.Debug.Log($"Set TimeScale:{UnityEngine.Time.timeScale}");
         }
-        [CommandMethod]
+        [CommandMethod(note:"查询时间缩放")]
         public static void TimeScale()
         {
             UnityEngine.Debug.Log($"TimeScale:{UnityEngine.Time.timeScale}");
@@ -61,7 +80,7 @@ namespace Console.Command
     {
         private const long Kb = 1024;
         private const long Mb = 1024 * 1024;
-        [CommandMethod]
+        [CommandMethod(note:"查询系统信息")]
         public static void System()
         {
             StringBuilder sb = new StringBuilder();
@@ -105,7 +124,7 @@ namespace Console.Command
         }
 
         public static IEnumerable<string> GetTipFrameRate() => new[] { "-1", "30", "60", "144", "200", "240" };
-        [CommandMethod]
+        [CommandMethod(note:"设置帧率")]
         public static void SetFrameRate(
             [CommandParameter("F",nameof(GetTipFrameRate))]
             int frameRate)
@@ -113,33 +132,40 @@ namespace Console.Command
             UnityEngine.Application.targetFrameRate = frameRate;
             UnityEngine.Debug.Log($"Set FrameRate:{frameRate}");
         }
-        [CommandMethod]
+        [CommandMethod(note:"查询帧率")]
         public static void FrameRate()
         {
             UnityEngine.Debug.Log($"Setting FrameRate:{UnityEngine.Application.targetFrameRate}");
         }
-        [CommandMethod]
+        [CommandMethod(note:"查询FPS")]
         public static void CurrentFPS()
         {
             float fps = 1 / UnityEngine.Time.deltaTime;
             UnityEngine.Debug.Log($"CurrentFPS:{fps}");
         }
-        [CommandMethod]
+        [CommandMethod(note:"查询所有路径")]
+        public static void AllPath()
+        {
+            PersistentDataPath();
+            DataPath();
+            StreamingAssetsPath();
+        }
+        [CommandMethod(note:"查询路径")]
         public static void PersistentDataPath()
         {
             UnityEngine.Debug.Log($"PersistentDataPath:{UnityEngine.Application.persistentDataPath}");
         }
-        [CommandMethod]
+        [CommandMethod(note:"查询路径")]
         public static void DataPath()
         {
             UnityEngine.Debug.Log($"DataPath:{UnityEngine.Application.dataPath}");
         }
-        [CommandMethod]
+        [CommandMethod(note:"查询路径")]
         public static void StreamingAssetsPath()
         {
             UnityEngine.Debug.Log($"StreamingAssetsPath:{UnityEngine.Application.streamingAssetsPath}");
         }
-        [CommandMethod]
+        [CommandMethod(note:"退出游戏")]
         public static void ExitGame()
         {
 #if UNITY_EDITOR

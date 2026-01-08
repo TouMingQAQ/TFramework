@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using TFrameworkKit.Console.Command;
 #if UNITY_EDITOR
@@ -103,6 +104,7 @@ namespace TFramework.Console
                     var methodName = string.IsNullOrEmpty(commandMethodAttribute.Name) ? method.Name : commandMethodAttribute.Name;
                     container.CommandName = cmdName;
                     container.MethodName = methodName;
+                    container.CommandNote = commandMethodAttribute.NoteStr;
                     container.MethodInfo = method;
                     var parameters = method.GetParameters();
                     foreach (var parameterInfo in parameters)
@@ -138,50 +140,85 @@ namespace TFramework.Console
                         }
                         container.Parameters.Add(parameter);
                     }
-                    cmdMap[$"{container.CommandName}#{container.MethodName}"] = container;
+                    cmdMap[$"/{container.CommandName} /{container.MethodName}"] = container;
                 }
             }
             cmdList.AddRange(cmdMap.Values.ToList());
         }
-        public static void CommandTipList(string command,in HashSet<string> tipList)
+        public static void CommandTipList(string command,in HashSet<CommandTip> tipList)
         {
             tipList.Clear();
             if (!command.StartsWith("/"))
                 return;
-            // 定义正则表达式，匹配 "/类名" 格式的指令
-            string patternClass = @"^/(?<class>\w+)$";
-            // 定义正则表达式，匹配 "/类名 /方法名" 格式的指令
-            string patternMethod = @"^/(?<class>\w+)(\s+/(?<method>\w+))$";            
-            // // 定义正则表达式，匹配 "/类名 /方法名 #参数名" 格式的指令
-            // string pattern3 = @"^/(?<class>\w+)(\s+/(?<method>\w+))(\s+#(?<paramName>\w+))$";
-            // // 定义正则表达式，匹配 "/类名 /方法名 #参数名 参数值" 格式的指令
-            // string pattern4 = @"^/(?<class>\w+)(\s+/(?<method>\w+))(\s+#(?<paramName>\w+)\s+(?<paramValue>[\S\s]+?))?$";
-            // 收集四种匹配的结果
-            Match matchClass = Regex.Match(command, patternClass);
-            Match matchMethod = Regex.Match(command, patternMethod);
-            if(matchMethod.Success)
+
+            #region OldMethod
+
+            // // 定义正则表达式，匹配 "/类名" 格式的指令
+            // string patternClass = @"^/(?<class>\w+)$";
+            // // 定义正则表达式，匹配 "/类名 /方法名" 格式的指令
+            // string patternMethod = @"^/(?<class>\w+)(\s+/(?<method>\w+))$";            
+            // // // 定义正则表达式，匹配 "/类名 /方法名 #参数名" 格式的指令
+            // // string pattern3 = @"^/(?<class>\w+)(\s+/(?<method>\w+))(\s+#(?<paramName>\w+))$";
+            // // // 定义正则表达式，匹配 "/类名 /方法名 #参数名 参数值" 格式的指令
+            // // string pattern4 = @"^/(?<class>\w+)(\s+/(?<method>\w+))(\s+#(?<paramName>\w+)\s+(?<paramValue>[\S\s]+?))?$";
+            // // 收集四种匹配的结果
+            // Match matchClass = Regex.Match(command, patternClass);
+            // Match matchMethod = Regex.Match(command, patternMethod);
+            // if(matchMethod.Success)
+            // {
+            //     var className = matchMethod.Groups["class"].Value;
+            //     var methodName = matchMethod.Groups["method"].Value;
+            //     var containerList = cmdList.FindAll((c => c.CommandName.StartsWith(className) && c.MethodName.Contains(methodName,StringComparison.OrdinalIgnoreCase)));
+            //     if(!containerList.Any())
+            //         return;
+            //     foreach (var container in containerList)
+            //     {
+            //         tipList.Add($"/{container.CommandName} /{container.MethodName}");
+            //     }
+            // }
+            // else if (matchClass.Success)
+            // {
+            //     var className = matchClass.Groups["class"].Value;
+            //     var containerList = cmdList.FindAll((c => c.CommandName.Contains(className,StringComparison.OrdinalIgnoreCase)));
+            //     if(!containerList.Any())
+            //         return;
+            //     foreach (var container in containerList)
+            //     {
+            //         tipList.Add($"/{container.CommandName}");
+            //     }
+            // }
+
+            #endregion
+
+            #region New
+
+            tipList.Clear();
+            foreach (var (cmdKey,cmdValue) in cmdMap)
             {
-                var className = matchMethod.Groups["class"].Value;
-                var methodName = matchMethod.Groups["method"].Value;
-                var containerList = cmdList.FindAll((c => c.CommandName.StartsWith(className) && c.MethodName.Contains(methodName,StringComparison.OrdinalIgnoreCase)));
-                if(!containerList.Any())
-                    return;
-                foreach (var container in containerList)
+                if (cmdKey.Contains(command))
                 {
-                    tipList.Add($"/{container.CommandName} /{container.MethodName}");
+                    StringBuilder str = new StringBuilder();
+                    str.Append(cmdKey);
+                    CommandTip tip = new();
+                    tip.InputStr = str.ToString();
+                    str = str.Replace(command, $"<color=green>{command}</color>");
+
+                    foreach (var cmdValueParameter in cmdValue.Parameters)
+                    {
+                        str.Append($" #{cmdValueParameter.Name}({cmdValueParameter.ValueType})");
+                    }
+                    
+                    if (!string.IsNullOrEmpty(cmdValue.CommandNote))
+                        str.Append($" <color=#66ccff>[{cmdValue.CommandNote}]</color>");
+                    tip.ShowStr = str.ToString();
+                    tip.Command = cmdValue;
+                    tipList.Add(tip);
                 }
             }
-            else if (matchClass.Success)
-            {
-                var className = matchClass.Groups["class"].Value;
-                var containerList = cmdList.FindAll((c => c.CommandName.Contains(className,StringComparison.OrdinalIgnoreCase)));
-                if(!containerList.Any())
-                    return;
-                foreach (var container in containerList)
-                {
-                    tipList.Add($"/{container.CommandName}");
-                }
-            }
+
+            #endregion
+           
+    
 
             
         }
@@ -220,7 +257,7 @@ namespace TFramework.Console
                 return;
             }
 
-            string title = $"{cmdName}#{cmdMethod}";
+            string title = $"/{cmdName} /{cmdMethod}";
 
             if (!cmdMap.TryGetValue(title, out var container))
             {
