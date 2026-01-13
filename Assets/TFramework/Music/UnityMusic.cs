@@ -15,8 +15,20 @@ namespace TFramework.Music
         [SerializeField]
         private AudioSource audioSource;
 
+        public AudioSource AudioSource => audioSource;
+        public override bool IsPlaying => audioSource.isPlaying;
+        public override bool IsEnd => TotalTime > 0 && (PlayProgress >= 0.99f);
+
         public override float CurrentTime => audioSource.time;
-        public override float TotalTime => audioSource.clip.length;
+        public override float TotalTime
+        {
+            get
+            {
+                if (audioSource == null || audioSource.clip == null)
+                    return 0;
+                return audioSource.clip.length;
+            }
+        }
 
         public override bool Mute
         {
@@ -44,8 +56,14 @@ namespace TFramework.Music
         }
 
         protected override void OnLoadMusic(UnityMusicInfo info)
-        { 
+        {
             audioSource.clip = info.clip;
+        }
+
+        private void Awake()
+        {
+            audioSource.loop = false;
+            audioSource.playOnAwake = false;
         }
 
         public override void Play()

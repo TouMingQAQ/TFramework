@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -12,6 +13,9 @@ namespace TFramework.Music
     }
     public abstract class MusicPlay<TInfo> : MonoBehaviour where TInfo : MusicInfo
     {
+        public UnityEvent onPlay;
+        public UnityEvent onPause;
+        public UnityEvent onEnd;
         public virtual TInfo MusicInfo { get; set; }
         /// <summary>
         /// 播放进度[0~1]
@@ -19,7 +23,7 @@ namespace TFramework.Music
         public virtual float PlayProgress {
             get
             {
-                if (CurrentTime <= 0 || TotalTime <= 0)
+                if (TotalTime <= 0)
                     return 0;
                 return CurrentTime / TotalTime;
             }
@@ -27,6 +31,9 @@ namespace TFramework.Music
         }
 
 
+
+        public abstract bool IsPlaying { get; }
+        public abstract bool IsEnd { get; }
 
         /// <summary>
         /// 当前播放时间
@@ -47,6 +54,9 @@ namespace TFramework.Music
         /// 音乐作者
         /// </summary>
         public string MusicWriter => MusicInfo?.MusicWriter;
+
+        
+        public string MusicAlbum => MusicInfo?.MusicAlbum;
 
         /// <summary>
         /// 音乐头像
@@ -119,6 +129,26 @@ namespace TFramework.Music
         public virtual void SwitchMute()
         {
             Mute = !Mute;
+        }
+
+        private bool isPlaying = false;
+        protected virtual void Update()
+        {
+            if (isPlaying != IsPlaying)
+            {
+                isPlaying = IsPlaying;
+                if(IsPlaying)
+                    onPlay?.Invoke();
+                else
+                {
+                    if (IsEnd)
+                        onEnd?.Invoke();
+                    else
+                        onPause?.Invoke();
+                }
+            }
+
+           
         }
     }
 }
