@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-using Debug = Console.Command.Debug;
 using Random = UnityEngine.Random;
 
 namespace TFramework.Music

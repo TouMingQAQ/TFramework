@@ -1,10 +1,8 @@
 ﻿
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
-using TFrameworkKit.Console;
 using TFrameworkKit.Console.Command;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -13,35 +11,6 @@ using UnityEditor;
 
 namespace Console.Command
 {
-    [Command]
-    public static class Debug
-    {
-        /// <summary>
-        /// Example:/Debug /Log #M Hello World
-        /// </summary>
-        /// <param name="mess"></param>
-        [CommandMethod(isDebug:true)]
-        public static void Log(
-            [CommandParameter("M")]string mess)
-        {
-            UnityEngine.Debug.Log(mess);
-        }
-        [CommandMethod(isDebug:true)]
-        public static void LogError(
-            [CommandParameter("M")]string mess)
-        {
-            UnityEngine.Debug.LogError(mess);
-
-        }
-        [CommandMethod(isDebug:true)]
-        public static void LogWarning(
-            [CommandParameter("M")]string mess
-            )
-        {
-            UnityEngine.Debug.LogWarning(mess);
-        }
- 
-    }
     [Command]
     public static class Screen
     {

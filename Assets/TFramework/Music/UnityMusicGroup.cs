@@ -35,7 +35,7 @@ namespace TFramework.Music
             if (!directoryInfo.Exists)
             {
                 directoryInfo.Create();
-                Debug.Log($"创建音乐文件夹：{directoryPath}");
+                UnityEngine.Debug.Log($"创建音乐文件夹：{directoryPath}");
                 return;
             }
 
@@ -58,7 +58,7 @@ namespace TFramework.Music
                 if(info == null)
                     continue;
                 await GetTag(fileInfo, info);
-                Debug.Log("<color=green>LoadMusic</color> : "+info.MusicName);
+                UnityEngine.Debug.Log("<color=green>LoadMusic</color> : "+info.MusicName);
                 await UniTask.WaitForEndOfFrame();
                 infoGroup.Add(info);
             }
