@@ -34,9 +34,12 @@ namespace TFramework.Runtime.Buff
                     Node._eventMap[EventType] = newDelegate;
             }
 
-            public void Call(params object[] objects)
+            public bool Call(params object[] objects)
             {
-                Action?.DynamicInvoke(objects);
+                if (Action == null)
+                    return false;
+                Action.DynamicInvoke(objects);
+                return true;
             }
         }
         public class Handle : IEventHandle
@@ -53,7 +56,7 @@ namespace TFramework.Runtime.Buff
         /// </summary>
         /// <param name="value"></param>
         /// <typeparam name="T"></typeparam>
-        public void Call<T>(T value)
+        public bool Call<T>(T value)
         {
             var eventType = typeof(T);
 
@@ -61,15 +64,20 @@ namespace TFramework.Runtime.Buff
             if (_eventMap.TryGetValue(eventType, out var existingDelegate))
             {
                 var action = existingDelegate as Action<T>;
-                action?.Invoke(value);
+                if (action == null)
+                    return false;
+                action.Invoke(value);
+                return true;
             }
+            else
+                return false;
         }
         /// <summary>
         /// 注册事件
         /// </summary>
         /// <param name="action"></param>
         /// <typeparam name="T"></typeparam>
-        public IEventHandle Register<T>(Action<T> action) where T : struct
+        public IEventHandle Register<T>(Action<T> action)
         {
             var handle = CreateHandle<T>(action);
             if (action == null) 
@@ -95,7 +103,7 @@ namespace TFramework.Runtime.Buff
         /// </summary>
         /// <param name="action"></param>
         /// <typeparam name="T"></typeparam>
-        public void UnRegister<T>(Action<T> action) where T : struct
+        public void UnRegister<T>(Action<T> action)
         {
             if (action == null) 
                 return;
@@ -112,7 +120,7 @@ namespace TFramework.Runtime.Buff
                 _eventMap[eventType] = newDelegate;
         }
 
-        protected IEventHandle CreateHandle<T>(Action<T> action) where T : struct
+        protected IEventHandle CreateHandle<T>(Action<T> action)
         {
             var type = typeof(T);
             return new Handle()
