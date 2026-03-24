@@ -2,7 +2,11 @@
 
 namespace TFramework.Runtime.Sample
 {
-    public class TimeBuff : BuffData<TimeBuff>
+    public interface ITimeBuff
+    {
+        public void ReStart();
+    }
+    public class TimeBuff<T> : BuffData<TimeBuff<T>>,ITimeBuff where T : TimeBuff<T>
     {
         public float Time { get; set; }
         protected float m_timer { get; set; }
@@ -37,7 +41,7 @@ namespace TFramework.Runtime.Sample
             }
         }
 
-        protected override void OnAddBuff(TimeBuff buffData)
+        protected override void OnAddBuff(TimeBuff<T> buffData)
         {
             //相同计时类Buff，时间长的更好
             if (buffData.Time > this.Time)
@@ -51,6 +55,11 @@ namespace TFramework.Runtime.Sample
                 if (buffData.Time > this.m_timer)
                     this.m_timer = buffData.Time;
             }
+        }
+
+        public void ReStart()
+        {
+            m_timer = Time;
         }
     }
 }

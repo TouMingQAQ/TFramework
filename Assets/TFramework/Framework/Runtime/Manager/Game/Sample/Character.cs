@@ -49,12 +49,14 @@ public class Character : MonoBehaviour
     {
         buffSystem.RegisterEffect<MaxHpBuffEffect>(OnMaxHpBuffEffect);
         buffSystem.RegisterEffect<HealHpEffect>(OnHealHpEffect);
+        buffSystem.RegisterEffect<DamageEffect>(OnDamageEffect);
     }
 
     private void OnDisable()
     {
         buffSystem.UnRegisterEffect<MaxHpBuffEffect>(OnMaxHpBuffEffect);
         buffSystem.UnRegisterEffect<HealHpEffect>(OnHealHpEffect);
+        buffSystem.UnRegisterEffect<DamageEffect>(OnDamageEffect);
     }
     void OnMaxHpBuffEffect(MaxHpBuffEffect effect)
     {
@@ -66,7 +68,12 @@ public class Character : MonoBehaviour
     {
         HealHp(effect.HealHp);
     }
+    void OnDamageEffect(DamageEffect effect)
+    {
+        Damage(effect.DamageHp);   
+    }
     #endregion
+
 
 
     public void HealHp(float heal)
@@ -81,7 +88,7 @@ public class Character : MonoBehaviour
         if(Hp <= 0)
             return;
         atk = Mathf.Max(0, atk);
-        var atkHp = Mathf.Max(1, (atk - Def));
+        var atkHp = Mathf.Max(0.1f, (atk - Def));
         Debug.Log($"{Name} take damage=>{atkHp}");
         Hp -= atkHp;
         Hp = Mathf.Clamp(Hp,0, MaxHp);
@@ -89,7 +96,22 @@ public class Character : MonoBehaviour
     
     public void _10秒真男人()
     {
-        buffSystem.AddBuff(new HealAndMaxHp("10秒真男人"));
+        buffSystem.AddBuff(new HealAndMaxHp("10S`God"));
+    }
+
+    public void ClearBuff()
+    {
+        buffSystem.AddBuff(new Clear("Clear"));
+    }
+
+    public void DamageBuff()
+    {
+        buffSystem.AddBuff(new Damage("Damage",10));
+    }
+
+    public void ClearOnTimeBuff()
+    {
+        buffSystem.AddBuff(new ClearOnTime("ClearOnTimeBuff",2));
     }
 
     private void Update()

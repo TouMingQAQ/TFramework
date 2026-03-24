@@ -27,6 +27,8 @@ namespace TFramework.Runtime.Buff
             m_buffMap.Clear();
             BakeExecuteBuff();
         }
+        
+        
         /// <summary>
         /// 更新
         /// </summary>
@@ -87,7 +89,6 @@ namespace TFramework.Runtime.Buff
         public void AddBuff(BaseBuffData data,bool defaultEnable = true,bool bakeOrder = true)
         {
             data.System = this;
-            data.SetActive(defaultEnable);
             data.Reset();
             if (m_buffMap.TryGetValue(data.BuffID, out var value))
                 value.AddBuff(data);
@@ -95,6 +96,8 @@ namespace TFramework.Runtime.Buff
                 m_buffMap[data.BuffID] = data;
             if(bakeOrder)
                 BakeExecuteBuff();
+            //Buff的激活会触发生命周期函数，为了保证Buff在生命周期内可以通知System移除自己，所以需要放在后面
+            data.SetActive(defaultEnable);
         }
 
         /// <summary>
@@ -164,6 +167,15 @@ namespace TFramework.Runtime.Buff
             {
                 if (comparable.Invoke(value))
                     dataList.Add(value);
+            }
+        }
+
+        public void QueryBuff(Predicate<BaseBuffData> comparable, Action<BaseBuffData> onComparable)
+        {
+            foreach (var value in m_buffMap.Values)
+            {
+                if (comparable.Invoke(value))
+                    onComparable?.Invoke(value);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace TFramework.Runtime.Buff
 {
@@ -7,6 +8,7 @@ namespace TFramework.Runtime.Buff
     /// </summary>
     public abstract class BaseBuffData
     {
+        public virtual Type Type => typeof(BaseBuffData);
         #region 属性,Buff的主要数据
 
         /// <summary>
@@ -116,9 +118,9 @@ namespace TFramework.Runtime.Buff
                 return;
             if(!m_active)
                 return;
-            foreach (var buffAction in m_effectList)
+            foreach (var buffEffect in m_effectList)
             {
-                buffAction.OnUpdate(deltaTime,this);
+                buffEffect.OnUpdate(deltaTime,this);
             }
         }
         /// <summary>
@@ -127,6 +129,15 @@ namespace TFramework.Runtime.Buff
         /// <param name="data"></param>
         public virtual void AddBuff(BaseBuffData data) {}
 
+        public virtual void Effect()
+        {
+            if(m_effectList == null)
+                return;
+            foreach (var buffEffect in m_effectList)
+            {
+                buffEffect.Effect();
+            }
+        }
  
         /// <summary>
         /// 重置Buff
