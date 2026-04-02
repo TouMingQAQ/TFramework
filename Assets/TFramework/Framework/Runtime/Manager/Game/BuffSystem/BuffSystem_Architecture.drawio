@@ -1,0 +1,486 @@
+<mxfile host="app.diagrams.net" modified="2026-04-03T02:28:00.000Z" agent="WorkBuddy" version="21.0.0">
+  <diagram id="arch" name="BuffSystem 架构图">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===== 标题 ===== -->
+        <mxCell id="title" value="TFramework BuffSystem — 架构总览" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="800" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ===== BufferControl ===== -->
+        <mxCell id="bc_box" value="&lt;b&gt;BufferControl&lt;/b&gt;（控制器）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="580" y="90" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="bc_desc" value="• 管理多个 BuffSystem（一对多）&#xa;• 持有 EventHandle Map（Type → Handle）&#xa;• AddEffect / CallEvent 广播到所有子系统&#xa;• AddBuffSystem / RemoveBuffSystem" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=11;align=left;" vertex="1" parent="1">
+          <mxGeometry x="480" y="155" width="440" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="bc_to_desc" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="bc_box" target="bc_desc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== BuffSystem ===== -->
+        <mxCell id="bs_box1" value="&lt;b&gt;BuffSystem&lt;/b&gt;（Buff容器·实例1）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="160" y="310" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="bs_box2" value="&lt;b&gt;BuffSystem&lt;/b&gt;（Buff容器·实例2）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="310" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="bs_dots" value="..." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=20;" vertex="1" parent="1">
+          <mxGeometry x="660" y="315" width="80" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- BufferControl → BuffSystem 连线 -->
+        <mxCell id="bc_bs1" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="bc_box" target="bs_box1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="bc_bs2" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="bc_box" target="bs_box2" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BuffSystem 内部结构 -->
+        <mxCell id="bs_inner" value="内部结构&#xa;• m_buffMap: Dictionary&lt;string, BaseBuffData&gt;&#xa;• m_updateBuffDataList: List（已按 Order 排序）&#xa;• m_Event: EventNode（接收外部事件）&#xa;• m_EffectEvent: EventNode（发出 Effect 事件）&#xa;• BakeExecuteBuff()：重建更新列表并排序" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="80" y="390" width="420" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="bs1_to_inner" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="bs_box1" target="bs_inner" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== BaseBuffData ===== -->
+        <mxCell id="bd_box" value="&lt;b&gt;BaseBuffData&lt;/b&gt;（抽象）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="160" y="540" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="bd_desc" value="• BuffID / Order / Active / System&#xa;• effectList: List&lt;BaseBuffEffect&gt;&#xa;• SetActive(bool) → OnEnable / OnDisable&#xa;• OnUpdate(dt) → 遍历 effectList&#xa;• Effect() → 手动触发 effectList&#xa;• AddBuff(data) → Buff叠加（虚方法）&#xa;• Remove() → 通知 System 移除自身" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="60" y="620" width="460" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="bd_to_desc" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="bd_box" target="bd_desc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BuffSystem → BaseBuffData -->
+        <mxCell id="bs_to_bd" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="bs_inner" target="bd_box" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="510" />
+              <mxPoint x="290" y="540" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- BuffData<T> 子类 -->
+        <mxCell id="buffdata_t" value="&lt;b&gt;BuffData&lt;T&gt;&lt;/b&gt;（泛型约束子类）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="580" y="580" width="240" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="buffdata_t_desc" value="• 继承 BaseBuffData&#xa;• 泛型 AddBuff(T) → OnAddBuff(T)&#xa;• 子类实现 OnAddBuff 处理叠层逻辑" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="560" y="650" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="bd_to_t" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;" edge="1" source="bd_box" target="buffdata_t" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t_to_desc2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="buffdata_t" target="buffdata_t_desc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== BaseBuffEffect ===== -->
+        <mxCell id="be_box" value="&lt;b&gt;BaseBuffEffect&lt;/b&gt;（抽象）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="160" y="780" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="be_desc" value="• OnEnable(buffdata)&#xa;• OnDisable(buffdata)&#xa;• OnUpdate(dt, buffdata) — Tick 更新&#xa;• Effect() — 主动触发效果（虚方法）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="60" y="850" width="460" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="be_to_desc" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="be_box" target="be_desc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BaseBuffData → BaseBuffEffect -->
+        <mxCell id="bd_to_be" style="edgeStyle=orthogonalEdgeStyle;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="bd_desc" target="be_box" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="290" y="745" />
+              <mxPoint x="290" y="780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- BuffEffect<T> 子类 -->
+        <mxCell id="buffeffect_t" value="&lt;b&gt;BuffEffect&lt;T&gt;&lt;/b&gt;（泛型，发出事件）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="580" y="800" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="buffeffect_t_desc" value="• 继承 BaseBuffEffect&#xa;• Effect() 重写：调用 System.Effect(this as T)&#xa;• System 将 T 广播到 EffectEvent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="560" y="868" width="300" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="be_to_t2" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;" edge="1" source="be_box" target="buffeffect_t" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="t2_to_desc3" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="buffeffect_t" target="buffeffect_t_desc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ===== EventNode ===== -->
+        <mxCell id="en_box" value="&lt;b&gt;EventNode&lt;/b&gt;（事件总线）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#808080;fontSize=12;fontStyle=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="980" y="540" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="en_desc" value="• _eventMap: Dict&lt;Type, Delegate&gt;&#xa;• Register / UnRegister / Call&#xa;• RegisterHandle / UnRegisterHandle&#xa;• IEventHandle 接口（Action + Type + Node）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#808080;fontSize=10;align=left;" vertex="1" parent="1">
+          <mxGeometry x="920" y="610" width="380" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="en_to_desc" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="en_box" target="en_desc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BuffSystem → EventNode -->
+        <mxCell id="bs2_to_en" value="m_EffectEvent&#xa;m_Event" style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" source="bs_box2" target="en_box" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 图例 -->
+        <mxCell id="legend" value="图例" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="780" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="leg1" value="继承关系（虚线箭头）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="820" width="200" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="leg2" value="包含/持有关系（实线箭头）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="860" width="200" height="30" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="flow" name="Buff 执行流程图">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 标题 -->
+        <mxCell id="ftitle" value="TFramework BuffSystem — Buff 执行全流程" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="900" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 泳道标注 ========== -->
+        <mxCell id="lane_ext"  value="外部调用方" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40"   y="70" width="220" height="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_ctrl" value="BufferControl" style="swimlane;startSize=30;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="280"  y="70" width="220" height="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_sys"  value="BuffSystem" style="swimlane;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="520"  y="70" width="220" height="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_data" value="BaseBuffData" style="swimlane;startSize=30;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="760"  y="70" width="220" height="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_eff"  value="BaseBuffEffect" style="swimlane;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="70" width="220" height="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="lane_ev"   value="EventNode / 订阅者" style="swimlane;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="70" width="260" height="1020" as="geometry" />
+        </mxCell>
+
+        <!-- =========== 1. 初始化 =========== -->
+        <mxCell id="f_init_title" value="① 初始化" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="100" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_new_bs" value="new BuffSystem()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="130" width="180" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f_bs_init" value="BuffSystem.Init()&#xa;→ buffMap.Clear()&#xa;→ BakeExecuteBuff()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="130" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_init_arr" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_new_bs" target="f_bs_init" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_addbc" value="BufferControl.AddBuffSystem(bs)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="300" y="200" width="180" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f_addbc_note" value="把已注册的 Handle 批量注入&#xa;bs.EffectEvent.RegisterHandle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=9;align=left;" vertex="1" parent="1">
+          <mxGeometry x="300" y="248" width="180" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="f_init_arr2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_new_bs" target="f_addbc" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_addbc_arr" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_addbc" target="f_addbc_note" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- =========== 2. 添加Buff =========== -->
+        <mxCell id="f_sec2" value="② 添加 Buff" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="310" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_addbuff_call" value="bs.AddBuff(buffData)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="340" width="180" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f_addbuff_sys" value="data.System = this&#xa;data.Reset()&#xa;↓&#xa;buffID 已存在？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="530" y="330" width="200" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="f_addbuff_arr" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_addbuff_call" target="f_addbuff_sys" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_add_stack" value="value.AddBuff(data)&#xa;→ BuffData&lt;T&gt;.OnAddBuff()&#xa;（叠层/刷新逻辑）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="330" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f_add_new" value="buffMap[id] = data&#xa;（新增条目）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="410" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_yes_arr" value="是" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_addbuff_sys" target="f_add_stack" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_no_arr" value="否" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_addbuff_sys" target="f_add_new" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_bake1" value="BakeExecuteBuff()&#xa;重建列表并按 Order 排序" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="480" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_setactive" value="data.SetActive(defaultEnable)&#xa;→ OnEnable() / OnDisable()&#xa;→ effectList[*].OnEnable/OnDisable" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="480" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f_new_to_bake" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_add_new" target="f_bake1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_stack_to_bake" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_add_stack" target="f_bake1" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_bake_to_active" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_bake1" target="f_setactive" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_oneff_enable" value="BaseBuffEffect.OnEnable()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="490" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_active_to_eff" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_setactive" target="f_oneff_enable" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- =========== 3. Tick更新 =========== -->
+        <mxCell id="f_sec3" value="③ Tick 更新（每帧）" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="570" width="180" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_update_call" value="bs.Update(deltaTime)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="60" y="600" width="180" height="36" as="geometry" />
+        </mxCell>
+        <mxCell id="f_copy_list" value="复制 updateBuffDataList&#xa;→ updateBuffDataListCache" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="600" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_update_arr" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_update_call" target="f_copy_list" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_loop_check" value="遍历 Cache&#xa;Active &amp;&amp; NeedUpdate?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="545" y="668" width="170" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="f_copy_to_loop" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_copy_list" target="f_loop_check" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_bd_onupdate" value="buffData.OnUpdate(dt)&#xa;→ 遍历 effectList" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="668" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_loop_yes" value="是" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_loop_check" target="f_bd_onupdate" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_eff_onupdate" value="BaseBuffEffect.OnUpdate(dt)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="668" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_bd_to_eff2" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_bd_onupdate" target="f_eff_onupdate" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_loop_skip" value="否（跳过）" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_loop_check" target="f_copy_list" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="698" />
+              <mxPoint x="500" y="625" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- =========== 4. Effect 触发 =========== -->
+        <mxCell id="f_sec4" value="④ Effect 触发（主动）" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="740" width="180" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_effect_call" value="buffData.Effect() 或&#xa;buffEffect.Effect()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="770" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_eff_effect" value="BuffEffect&lt;T&gt;.Effect()&#xa;→ System.Effect(this as T)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="770" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sys_effect" value="BuffSystem.Effect(T)&#xa;→ m_EffectEvent.Call(value)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="770" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_effect_to_eff" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_effect_call" target="f_eff_effect" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_eff_to_sys" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_eff_effect" target="f_sys_effect" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_subscriber" value="订阅者 Action&lt;T&gt; 回调&#xa;（外部逻辑处理效果）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="770" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_sys_to_sub" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_sys_effect" target="f_subscriber" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- =========== 5. 事件驱动 =========== -->
+        <mxCell id="f_sec5" value="⑤ 事件驱动（外部 → Buff）" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="850" width="210" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_callevent" value="bs.CallEvent&lt;T&gt;(value)&#xa;或 bufferCtrl.CallEvent&lt;T&gt;(value)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="880" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_event_node" value="m_Event.Call(value)&#xa;→ 遍历注册的 Action&lt;T&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="880" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_callevent_arr" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_callevent" target="f_event_node" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_buffdata_listen" value="BuffData 内部注册的&#xa;Action&lt;T&gt; 响应事件" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="880" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_event_to_data" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_event_node" target="f_buffdata_listen" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- =========== 6. 移除Buff =========== -->
+        <mxCell id="f_sec6" value="⑥ 移除 Buff" style="text;html=1;strokeColor=none;fillColor=none;align=left;fontStyle=1;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="955" width="120" height="20" as="geometry" />
+        </mxCell>
+
+        <mxCell id="f_remove_call" value="bs.RemoveBuff(id) 或&#xa;buffData.Remove()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="60" y="985" width="180" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="f_remove_sys" value="buffMap.Remove(id)&#xa;buffData.SetActive(false)&#xa;BakeExecuteBuff()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="540" y="985" width="180" height="56" as="geometry" />
+        </mxCell>
+        <mxCell id="f_remove_arr" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_remove_call" target="f_remove_sys" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ondisable" value="OnDisable()&#xa;→ effectList[*].OnDisable()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="770" y="985" width="180" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="f_remove_to_disable" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_remove_sys" target="f_ondisable" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="f_eff_ondisable" value="BaseBuffEffect.OnDisable()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="985" width="180" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_disable_to_eff" style="edgeStyle=orthogonalEdgeStyle;" edge="1" source="f_ondisable" target="f_eff_ondisable" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+
+  <diagram id="class" name="类图">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 标题 -->
+        <mxCell id="ctitle" value="TFramework BuffSystem — 类图" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="20" width="900" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- BufferControl -->
+        <mxCell id="c_ctrl" value="&lt;&lt;class&gt;&gt;&#xa;BufferControl" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=center;verticalAlign=middle;spacingTop=-2;fontSize=13;fontStyle=1;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="80" width="220" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_ctrl_body" value="- eventHandleMap: Dict&lt;Type, IEventHandle&gt;&#xa;- _buffSystemList: List&lt;BuffSystem&gt;&#xa;+ AddBuffSystem(system)&#xa;+ RemoveBuffSystem(system)&#xa;+ AddEffect&lt;T&gt;(Action&lt;T&gt;)&#xa;+ CallEvent&lt;T&gt;(T)&#xa;+ QueryBuff(Predicate, List)" style="text;html=1;strokeColor=#6c8ebf;fillColor=#dae8fc;align=left;verticalAlign=top;fontSize=10;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="60" y="120" width="220" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- BuffSystem -->
+        <mxCell id="c_sys" value="&lt;&lt;class&gt;&gt;&#xa;BuffSystem" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=center;verticalAlign=middle;spacingTop=-2;fontSize=13;fontStyle=1;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="380" y="80" width="260" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_sys_body" value="- m_buffMap: Dict&lt;string, BaseBuffData&gt;&#xa;- m_updateBuffDataList: List&lt;BaseBuffData&gt;&#xa;- m_Event: EventNode&#xa;- m_EffectEvent: EventNode&#xa;+ Init()&#xa;+ Update(float)&#xa;+ AddBuff(data, enable, bake)&#xa;+ RemoveBuff(id)&#xa;+ RemoveBuff(Predicate)&#xa;+ AnyBuff(Predicate): bool&#xa;+ QueryBuff(Predicate, List)&#xa;+ CallEvent&lt;T&gt;(T)&#xa;+ RegisterEffect&lt;T&gt; / UnRegisterEffect&lt;T&gt;&#xa;# BakeExecuteBuff()" style="text;html=1;strokeColor=#82b366;fillColor=#d5e8d4;align=left;verticalAlign=top;fontSize=10;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="380" y="120" width="260" height="240" as="geometry" />
+        </mxCell>
+
+        <!-- BaseBuffData -->
+        <mxCell id="c_bd" value="&lt;&lt;abstract&gt;&gt;&#xa;BaseBuffData" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=center;verticalAlign=middle;spacingTop=-2;fontSize=13;fontStyle=1;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="700" y="80" width="240" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_bd_body" value="- m_BuffID: string&#xa;- m_Order: int&#xa;- m_active: bool&#xa;- m_effectList: List&lt;BaseBuffEffect&gt;&#xa;+ System: BuffSystem&#xa;+ BuffID, Order, Active, NeedUpdate&#xa;+ SetActive(bool, forceEvent)&#xa;# OnEnable() / OnDisable()&#xa;+ OnUpdate(float)&#xa;+ Effect()&#xa;+ AddBuff(BaseBuffData) // 叠加&#xa;+ Reset()&#xa;+ Remove()" style="text;html=1;strokeColor=#d6b656;fillColor=#fff2cc;align=left;verticalAlign=top;fontSize=10;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="700" y="120" width="240" height="220" as="geometry" />
+        </mxCell>
+
+        <!-- BuffData<T> -->
+        <mxCell id="c_bdt" value="&lt;&lt;abstract&gt;&gt;&#xa;BuffData&lt;T&gt;" style="text;html=1;strokeColor=#d79b00;fillColor=#ffe6cc;align=center;verticalAlign=middle;spacingTop=-2;fontSize=13;fontStyle=1;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="700" y="420" width="240" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_bdt_body" value="+ AddBuff(BaseBuffData)&#xa;# OnAddBuff(T) // 子类实现叠层" style="text;html=1;strokeColor=#d79b00;fillColor=#ffe6cc;align=left;verticalAlign=top;fontSize=10;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="700" y="460" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- BaseBuffEffect -->
+        <mxCell id="c_be" value="&lt;&lt;abstract&gt;&gt;&#xa;BaseBuffEffect" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=center;verticalAlign=middle;spacingTop=-2;fontSize=13;fontStyle=1;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="80" width="240" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_be_body" value="+ BaseBuffData: BaseBuffData&#xa;+ OnEnable(buffdata)&#xa;+ OnDisable(buffdata)&#xa;+ OnUpdate(dt, buffdata)&#xa;+ Effect()" style="text;html=1;strokeColor=#b85450;fillColor=#f8cecc;align=left;verticalAlign=top;fontSize=10;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="120" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- BuffEffect<T> -->
+        <mxCell id="c_bet" value="&lt;&lt;abstract&gt;&gt;&#xa;BuffEffect&lt;T&gt;" style="text;html=1;strokeColor=#9673a6;fillColor=#e1d5e7;align=center;verticalAlign=middle;spacingTop=-2;fontSize=13;fontStyle=1;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="340" width="240" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_bet_body" value="+ Effect()&#xa;  → System.Effect(this as T)&#xa;  → EffectEvent.Call(T)" style="text;html=1;strokeColor=#9673a6;fillColor=#e1d5e7;align=left;verticalAlign=top;fontSize=10;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="380" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- EventNode -->
+        <mxCell id="c_en" value="&lt;&lt;class&gt;&gt;&#xa;EventNode" style="text;html=1;strokeColor=#808080;fillColor=#f0f0f0;align=center;verticalAlign=middle;spacingTop=-2;fontSize=13;fontStyle=1;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="380" y="460" width="240" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="c_en_body" value="- _eventMap: Dict&lt;Type, Delegate&gt;&#xa;+ Register&lt;T&gt; / UnRegister&lt;T&gt;&#xa;+ RegisterHandle / UnRegisterHandle&#xa;+ Call&lt;T&gt;(T): bool&#xa;+ Clear()&#xa;interface IEventHandle&#xa;  Node, Action, EventType" style="text;html=1;strokeColor=#808080;fillColor=#f0f0f0;align=left;verticalAlign=top;fontSize=10;shape=mxgraph.uml.classifier;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="380" y="500" width="240" height="130" as="geometry" />
+        </mxCell>
+
+        <!-- BufferControl → BuffSystem：聚合 -->
+        <mxCell id="cr1" value="管理（1..n）" style="edgeStyle=orthogonalEdgeStyle;endArrow=ERmany;startArrow=ERone;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" source="c_ctrl" target="c_sys" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BuffSystem → BaseBuffData：持有 -->
+        <mxCell id="cr2" value="包含" style="edgeStyle=orthogonalEdgeStyle;endArrow=ERmany;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" source="c_sys" target="c_bd" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BaseBuffData → BaseBuffEffect：包含 -->
+        <mxCell id="cr3" value="包含 effectList" style="edgeStyle=orthogonalEdgeStyle;endArrow=ERmany;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" source="c_bd" target="c_be" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BuffData<T> 继承 BaseBuffData -->
+        <mxCell id="cr4" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;" edge="1" source="c_bdt" target="c_bd" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BuffEffect<T> 继承 BaseBuffEffect -->
+        <mxCell id="cr5" value="" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=0;" edge="1" source="c_bet" target="c_be" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BuffSystem → EventNode：使用 -->
+        <mxCell id="cr6" value="m_Event&#xa;m_EffectEvent" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" source="c_sys_body" target="c_en" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- BufferControl → EventNode.IEventHandle：使用 -->
+        <mxCell id="cr7" value="持有 IEventHandle" style="edgeStyle=orthogonalEdgeStyle;dashed=1;endArrow=open;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" source="c_ctrl_body" target="c_en" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
