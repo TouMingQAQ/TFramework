@@ -158,7 +158,7 @@ namespace TFramework.Runtime.Buff
         /// </summary>
         /// <param name="comparable"></param>
         /// <param name="dataList"></param>
-        public void QueryBuff(Predicate<BaseBuffData> comparable,in List<BaseBuffData> dataList)
+        public void QueryBuff(Predicate<BaseBuffData> comparable,List<BaseBuffData> dataList)
         {
             if(dataList == null)
                 return;
@@ -184,16 +184,18 @@ namespace TFramework.Runtime.Buff
         #region Event
 
         private EventNode m_Event = new EventNode();
-        private EventNode m_ObjEvent = new EventNode();
+        private EventNode m_EffectEvent = new EventNode();
+
+        public EventNode EffectEvent => m_EffectEvent;
         
         /// <summary>
         /// 注册效果
         /// </summary>
         /// <param name="action"></param>
         /// <typeparam name="T"></typeparam>
-        public void RegisterEffect<T>(Action<T> action) where T : BuffEffect<T>
+        public EventNode.IEventHandle RegisterEffect<T>(Action<T> action) where T : BuffEffect<T>
         {
-            m_ObjEvent.Register(action);
+            return m_EffectEvent.Register(action);
         }
         /// <summary>
         /// 注销效果
@@ -202,16 +204,30 @@ namespace TFramework.Runtime.Buff
         /// <typeparam name="T"></typeparam>
         public void UnRegisterEffect<T>(Action<T> action) where T : BuffEffect<T>
         {
-            m_ObjEvent.UnRegister(action);
+            m_EffectEvent.UnRegister(action);
+        }
+        public void ClearEffectEvent()
+        {
+            m_EffectEvent.Clear();
         }
 
         internal void Effect<T>(T value) where T : BuffEffect<T>
         {
-            var res = m_ObjEvent.Call(value);
+            var res = m_EffectEvent.Call(value);
             if(!res)
                 Debug.LogWarning($"[<color=red>Effect</color>]:没有对象处理事件[<color=green>{typeof(T)}</color>]");
         }
-
+        
+        
+        /// <summary>
+        /// 通知事件，注册对应事件的BuffData会响应
+        /// </summary>
+        /// <param name="value"></param>
+        /// <typeparam name="T"></typeparam>
+        public void CallEvent<T>(T value)
+        {
+            m_Event.Call(value);
+        }
         internal void RegisterEvent<T>(Action<T> action)
         {
             m_Event.Register(action);
@@ -222,15 +238,7 @@ namespace TFramework.Runtime.Buff
             m_Event.UnRegister(action);
         }
 
-        /// <summary>
-        /// 通知事件，注册对应事件的BuffData会响应
-        /// </summary>
-        /// <param name="value"></param>
-        /// <typeparam name="T"></typeparam>
-        public void CallEvent<T>(T value)
-        {
-            m_Event.Call(value);
-        }
+
         
         
 

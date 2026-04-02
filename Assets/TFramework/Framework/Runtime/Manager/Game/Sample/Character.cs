@@ -24,6 +24,8 @@ public class HpUpEffect : BaseBuffEffect
 public class Character : MonoBehaviour
 {
     public BuffSystem buffSystem = new BuffSystem();
+    public BuffSystem globalBuffSystem = new BuffSystem();
+    public BufferControl control = new();
     public string Name;
     public float Hp;
     public float MaxHp;
@@ -39,6 +41,12 @@ public class Character : MonoBehaviour
     private void Awake()
     {
         buffSystem.Init();
+        globalBuffSystem.Init();
+       
+        
+        control.AddEffect<MaxHpBuffEffect>(OnMaxHpBuffEffect);
+        control.AddEffect<HealHpEffect>(OnHealHpEffect);
+        control.AddEffect<DamageEffect>(OnDamageEffect);
     }
 
 
@@ -47,16 +55,13 @@ public class Character : MonoBehaviour
 
     private void OnEnable()
     {
-        buffSystem.RegisterEffect<MaxHpBuffEffect>(OnMaxHpBuffEffect);
-        buffSystem.RegisterEffect<HealHpEffect>(OnHealHpEffect);
-        buffSystem.RegisterEffect<DamageEffect>(OnDamageEffect);
+        control.AddBuffSystem(buffSystem);
+        control.AddBuffSystem(globalBuffSystem);
     }
 
     private void OnDisable()
     {
-        buffSystem.UnRegisterEffect<MaxHpBuffEffect>(OnMaxHpBuffEffect);
-        buffSystem.UnRegisterEffect<HealHpEffect>(OnHealHpEffect);
-        buffSystem.UnRegisterEffect<DamageEffect>(OnDamageEffect);
+        control.ClearBuffSystem();
     }
     void OnMaxHpBuffEffect(MaxHpBuffEffect effect)
     {
@@ -96,7 +101,7 @@ public class Character : MonoBehaviour
     
     public void _10秒真男人()
     {
-        buffSystem.AddBuff(new HealAndMaxHp("10S`God"));
+        globalBuffSystem.AddBuff(new HealAndMaxHp("10S`God"));
     }
 
     public void ClearBuff()
@@ -117,6 +122,7 @@ public class Character : MonoBehaviour
     private void Update()
     {
         buffSystem.Update(Time.deltaTime);
+        globalBuffSystem.Update(Time.deltaTime);
     }
 
     private List<BaseBuffData> buffList = new();
@@ -127,7 +133,7 @@ public class Character : MonoBehaviour
         atkText.text = $"Atk:{Atk}";
         defText.text = $"Def:{Def}";
 
-        buffSystem.QueryBuff(x => true, in buffList);
+        control.QueryBuff(x => true, buffList);
         StringBuilder sb = new();
         foreach (var buffData in buffList)
         {
